@@ -39,11 +39,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="bg-surface dark:bg-dark-surface min-h-screen flex flex-col selection:bg-slate-900 selection:text-white overflow-hidden transition-colors duration-300">
+    <div className="bg-surface dark:bg-dark-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary overflow-hidden transition-colors duration-300">
       <main className="flex-grow flex items-center justify-center p-4 relative overflow-hidden">
         {/* Subtle background glow */}
         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-30 pointer-events-none">
-          <div className="w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-slate-100 via-transparent to-surface blur-3xl" />
+          <div className="w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-surface-container-high via-transparent to-surface blur-3xl" />
         </div>
 
         <div className="relative z-10 w-full max-w-[420px]">
@@ -54,7 +54,7 @@ export default function Auth() {
           >
             {/* Branding */}
             <div className="text-center mb-8">
-              <h1 className="text-[24px] leading-[32px] tracking-[-0.01em] font-bold text-slate-900 mb-1">
+              <h1 className="text-[24px] leading-[32px] tracking-[-0.01em] font-bold text-on-surface mb-1">
                 SpendSense
               </h1>
               <p className="text-[16px] text-on-surface-variant">
@@ -75,7 +75,7 @@ export default function Auth() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-slate-900 transition-all placeholder:text-outline"
+                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary transition-all placeholder:text-outline"
                     placeholder="Alex Chen"
                     required={!isLogin}
                   />
@@ -94,7 +94,7 @@ export default function Auth() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-slate-900 transition-all placeholder:text-outline"
+                    className="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary transition-all placeholder:text-outline"
                     placeholder="name@university.edu"
                     required
                   />
@@ -108,7 +108,7 @@ export default function Auth() {
                     Password
                   </label>
                   {isLogin && (
-                    <button type="button" className="text-[14px] font-medium text-slate-900 hover:underline">
+                    <button type="button" className="text-[14px] font-medium text-on-surface hover:underline">
                       Forgot?
                     </button>
                   )}
@@ -120,7 +120,7 @@ export default function Auth() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-11 pr-12 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-slate-900 transition-all"
+                    className="w-full pl-11 pr-12 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-[16px] focus:outline-none focus:border-primary transition-all"
                     placeholder="••••••••"
                     required
                     minLength={8}
@@ -140,7 +140,7 @@ export default function Auth() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-slate-900 text-white text-[14px] font-medium py-3 px-6 rounded-lg hover:bg-black transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-primary text-on-primary text-[14px] font-medium py-3 px-6 rounded-lg hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <span className="animate-spin">⟳</span>
@@ -153,7 +153,7 @@ export default function Auth() {
                 </button>
                 <button
                   type="button"
-                  className="w-full bg-surface-container-lowest text-slate-900 border border-outline-variant text-[14px] font-medium py-3 px-6 rounded-lg hover:bg-slate-100 transition-all active:scale-[0.98]"
+                  className="w-full bg-surface-container-lowest text-on-surface border border-outline-variant text-[14px] font-medium py-3 px-6 rounded-lg hover:bg-surface-container-high transition-all active:scale-[0.98]"
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setError('');
@@ -166,7 +166,7 @@ export default function Auth() {
 
             {/* Error message */}
             {error && (
-              <div className="mt-4 p-3 bg-error-container text-on-error-container text-[14px] font-medium rounded-lg flex items-start gap-2 animate-fade-in">
+               <div className="mt-4 p-3 bg-error-container text-on-error-container text-[14px] font-medium rounded-lg flex items-start gap-2 animate-fade-in">
                 <span className="text-[16px]">⚠</span>
                 <span>{error}</span>
               </div>
@@ -188,9 +188,9 @@ export default function Auth() {
       {/* Footer */}
       <footer className="p-6 text-center text-[14px] font-medium text-on-surface-variant border-t border-outline-variant dark:border-dark-outline-variant bg-surface-container-lowest dark:bg-dark-surface-container-lowest">
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-slate-900 transition-colors">Contact Support</a>
+          <a href="#" className="hover:text-on-surface transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-on-surface transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-on-surface transition-colors">Contact Support</a>
         </div>
       </footer>
     </div>

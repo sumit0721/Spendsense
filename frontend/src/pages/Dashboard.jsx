@@ -10,7 +10,9 @@ import TransactionRow from '../components/TransactionRow';
 import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import AddTransactionModal from '../components/AddTransactionModal';
+import SetBudgetModal from '../components/SetBudgetModal';
 import { getTransactions, getTransactionStats, getBudgetForecast } from '../services/api';
+import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
 
   const fetchData = async () => {
       try {
@@ -44,30 +47,32 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Compute metrics
   const currentMonthTotal = stats?.monthlyComparison?.currentMonthTotal || 0;
   const momPct = stats?.monthlyComparison?.momDeltaPercentage || 0;
-  const spendTrend = momPct > 0 ? 'down' : momPct < 0 ? 'up' : 'neutral'; // More spend is 'down' (negative for student), less is 'up'
+  // NOTE: MetricCard's `trend` prop means 'up' = good/green, 'down' = bad/red —
+  // it has no awareness of WHAT increased or decreased. For spending, a
+  // POSITIVE momPct (spend went UP) is bad for the user, so it must map to
+  // MetricCard's 'down' (red), not 'up'. This mapping is intentionally
+  // inverted relative to the raw number's sign — do not "fix" this to match
+  // momPct's sign directly, that would show spending increases in green.
+  const spendTrend = momPct > 0 ? 'down' : momPct < 0 ? 'up' : 'neutral';
   const spendTrendValue = stats ? `${momPct > 0 ? '+' : ''}${momPct}% vs last month` : 'No data yet';
 
-  // Budget remaining calculations
   const totalSpend = forecast?.forecasts?.reduce((acc, f) => acc + (f.currentSpend || 0), 0) || 0;
   const totalLimit = forecast?.forecasts?.reduce((acc, f) => acc + (f.limit || 0), 0) || 0;
   const budgetRemaining = totalLimit - totalSpend;
   const budgetProgress = totalLimit > 0 ? (totalSpend / totalLimit) * 100 : undefined;
   const budgetProgressLabel = totalLimit > 0 ? `Spent ₹${totalSpend.toFixed(2)} of ₹${totalLimit.toFixed(2)}` : 'Set a budget to start tracking';
+  
+  const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
-  // Forecasting calculations
   const totalProjected = forecast?.forecasts?.reduce((acc, f) => acc + (f.projectedSpend || 0), 0) || 0;
   const projectedValue = totalLimit > 0 ? `₹${totalProjected.toFixed(2)}` : '—';
   const projectedTrend = totalLimit > 0 && totalProjected > totalLimit ? 'down' : 'neutral';
   const projectedTrendValue = totalLimit > 0 ? (totalProjected > totalLimit ? 'Projected over budget' : 'Projected on track') : 'No active budget';
 
-  // Average daily spending calculation
   const currentDay = new Date().getDate();
   const avgDaily = currentMonthTotal / currentDay || 0;
-
-  // Savings limit safety factor
   const limitRemainingRate = totalLimit > 0 ? Math.max(0, (1 - totalSpend / totalLimit) * 100) : null;
 
   return (
@@ -79,62 +84,32 @@ export default function Dashboard() {
       </TopBar>
 
       <div className="p-6 space-y-6 max-w-[1200px] mx-auto w-full">
-        {/* Error Alert Box */}
         {error && (
           <div className="p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 text-[14px] font-medium">
             Could not retrieve recent data from the servers. Displaying local cache/defaults.
           </div>
         )}
 
-        {/* Insight of the Day (AI-advisory message grounded in real budget data) */}
         {forecast?.advisorySentence && (
-          <InsightCard
-            type="ai"
-            title="AI Smart Advisory"
-            message={forecast.advisorySentence}
-          />
+          <InsightCard type="ai" title="AI Smart Advisory" message={forecast.advisorySentence} />
         )}
 
-        {/* Metric Cards */}
         {loading ? (
           <LoadingState type="cards" />
         ) : (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <MetricCard
-              label="Total Spent"
-              value={`₹${currentMonthTotal.toFixed(2)}`}
-              trend={spendTrend}
-              trendValue={spendTrendValue}
-              icon={<Wallet size={18} />}
-            />
-            <MetricCard
-              label="Budget Remaining"
-              value={totalLimit > 0 ? `₹${Math.max(0, budgetRemaining).toFixed(2)}` : '—'}
-              progress={budgetProgress}
-              progressLabel={budgetProgressLabel}
-              icon={<PieChart size={18} />}
-            />
-            <MetricCard
-              label="Forecasted End-of-Month"
-              value={projectedValue}
-              trend={projectedTrend}
-              trendValue={projectedTrendValue}
-              icon={<TrendingUp size={18} />}
-            />
+            <MetricCard label="Total Spent" value={`₹${currentMonthTotal.toFixed(2)}`} trend={spendTrend} trendValue={spendTrendValue} icon={<Wallet size={18} />} />
+            <MetricCard label="Budget Remaining" value={totalLimit > 0 ? `₹${Math.max(0, budgetRemaining).toFixed(2)}` : '—'} progress={budgetProgress} progressLabel={budgetProgressLabel} icon={<PieChart size={18} />} />
+            <MetricCard label="Forecasted End-of-Month" value={projectedValue} trend={projectedTrend} trendValue={projectedTrendValue} icon={<TrendingUp size={18} />} />
           </section>
         )}
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Category Breakdown */}
           <section className="lg:col-span-5 h-full">
             <ChartContainer
               title="Category Breakdown"
               actions={
-                <button
-                  onClick={() => navigate('/transactions')}
-                  className="text-[12px] font-semibold text-primary hover:underline"
-                >
+                <button onClick={() => navigate('/transactions')} className="text-[12px] font-semibold text-primary hover:underline">
                   View Details
                 </button>
               }
@@ -143,30 +118,33 @@ export default function Dashboard() {
                 {loading ? (
                   <LoadingState type="cards" />
                 ) : stats?.categoryTotals && stats.categoryTotals.length > 0 ? (
-                  stats.categoryTotals.slice(0, 5).map((catTotal) => {
-                    const catForecast = forecast?.forecasts?.find((f) => f.category === catTotal.category);
-                    const limit = catForecast?.limit || 0;
-                    const isAnomaly = catForecast?.status === 'over';
-
-                    const totalMonthSpend = stats.monthlyComparison?.currentMonthTotal || 1;
-                    const percentage = (catTotal.total / totalMonthSpend) * 100;
-
-                    return (
-                      <CategoryBar
-                        key={catTotal.category}
-                        category={catTotal.category}
-                        amount={catTotal.total}
-                        percentage={limit > 0 ? (catTotal.total / limit) * 100 : percentage}
-                        limit={limit}
-                        isAnomaly={isAnomaly}
-                      />
-                    );
-                  })
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={stats.categoryTotals.slice(0, 6)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          dataKey="total"
+                          nameKey="category"
+                        >
+                          {stats.categoryTotals.slice(0, 6).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => `₹${value.toFixed(2)}`}
+                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
                 ) : (
-                  <EmptyState
-                    title="No category data"
-                    description="No transaction categories logged in the last 90 days."
-                  />
+                  <EmptyState title="No category data" description="No transaction categories logged in the last 90 days." />
                 )}
               </div>
               <div className="mt-8 pt-4 border-t border-outline-variant">
@@ -186,7 +164,6 @@ export default function Dashboard() {
             </ChartContainer>
           </section>
 
-          {/* Recent Transactions */}
           <section className="lg:col-span-7">
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow overflow-hidden flex flex-col h-full">
               <div className="p-4 flex justify-between items-center border-b border-outline-variant">
@@ -196,12 +173,7 @@ export default function Dashboard() {
                 {loading ? (
                   <LoadingState count={5} type="table" />
                 ) : transactions.length === 0 ? (
-                  <EmptyState
-                    title="No transactions yet"
-                    description="Add your first transaction to start tracking your spending."
-                    actionLabel="Add Transaction"
-                    onAction={() => setShowAddModal(true)}
-                  />
+                  <EmptyState title="No transactions yet" description="Add your first transaction to start tracking your spending." actionLabel="Add Transaction" onAction={() => setShowAddModal(true)} />
                 ) : (
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -213,18 +185,14 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant">
-                      {transactions.map((t) => (
-                        <TransactionRow key={t._id} transaction={t} />
-                      ))}
+                      {transactions.map((t) => (<TransactionRow key={t._id} transaction={t} />))}
                     </tbody>
                   </table>
                 )}
               </div>
               {transactions.length > 0 && (
                 <div className="p-4 bg-surface-container-low text-center border-t border-outline-variant">
-                  <a href="/transactions" className="text-[14px] font-medium text-primary hover:underline">
-                    View All Transactions
-                  </a>
+                  <a href="/transactions" className="text-[14px] font-medium text-primary hover:underline">View All Transactions</a>
                 </div>
               )}
             </div>
@@ -232,25 +200,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Add Transaction Modal */}
       {showAddModal && (
-        <AddTransactionModal
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => {
-            setShowAddModal(false);
-            fetchData();
-          }}
-        />
+        <AddTransactionModal onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); fetchData(); }} />
+      )}
+      {showBudgetModal && (
+        <SetBudgetModal onClose={() => setShowBudgetModal(false)} onSuccess={() => { setShowBudgetModal(false); fetchData(); }} />
       )}
 
-      {/* Floating Add Button */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        title="Add Transaction"
-        className="fixed bottom-20 md:bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-40 group"
-      >
-        <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      {/* Quick Action Buttons */}
+      <div className="fixed bottom-20 md:bottom-8 right-8 flex flex-col gap-4 z-40">
+        <button onClick={() => setShowBudgetModal(true)} title={totalLimit > 0 ? "Edit Budget" : "Set Budget"} className="w-12 h-12 bg-secondary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group">
+          <PieChart size={20} className="group-hover:rotate-12 transition-transform duration-300" />
+        </button>
+        <button onClick={() => setShowAddModal(true)} title="Add Transaction" className="w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group">
+          <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+        </button>
+      </div>
     </>
   );
 }

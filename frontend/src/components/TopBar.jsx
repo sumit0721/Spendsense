@@ -1,6 +1,6 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { Bell, Calendar, Sun, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+import { Bell, Calendar, Sun, Moon, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -8,6 +8,7 @@ export default function TopBar({ title, subtitle, children }) {
   const { user } = useAuth();
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
+  const [showNotification, setShowNotification] = useState(false);
 
   const getPageTitle = () => {
     if (title) return title;
@@ -48,6 +49,15 @@ export default function TopBar({ title, subtitle, children }) {
       </div>
 
       <div className="flex items-center gap-md">
+        {/* Home Button */}
+        <Link 
+          to="/"
+          className="p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none"
+          title="Go to Home"
+        >
+          <Home className="w-[18px] h-[18px]" />
+        </Link>
+
         {/* Date Display */}
         <div className="hidden sm:flex items-center gap-xs text-[13px] font-medium text-on-surface-variant border border-outline-variant dark:border-dark-outline-variant bg-surface dark:bg-dark-surface-container-low px-sm py-[6px] rounded-lg">
           <Calendar className="w-4 h-4 text-secondary" />
@@ -66,13 +76,23 @@ export default function TopBar({ title, subtitle, children }) {
         </button>
 
         {/* Notifications button */}
-        <button 
-          onClick={() => alert("No new notifications")}
-          className="p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none relative"
-        >
-          <Bell className="w-[18px] h-[18px]" />
-          <span className="absolute top-[2px] right-[2px] w-2 h-2 bg-error rounded-full ring-2 ring-white" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => {
+              setShowNotification(true);
+              setTimeout(() => setShowNotification(false), 3000);
+            }}
+            className="p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none relative"
+          >
+            <Bell className="w-[18px] h-[18px]" />
+            <span className="absolute top-[2px] right-[2px] w-2 h-2 bg-error rounded-full ring-2 ring-white" />
+          </button>
+          {showNotification && (
+            <div className="absolute top-10 right-0 w-48 bg-surface dark:bg-dark-surface border border-outline-variant dark:border-dark-outline-variant rounded-lg shadow-lg p-3 z-50 animate-in fade-in slide-in-from-top-2">
+              <p className="text-[13px] text-on-surface font-medium text-center">No new notifications</p>
+            </div>
+          )}
+        </div>
 
         {/* User Info */}
         <div className="flex items-center gap-xs pl-xs border-l border-outline-variant">

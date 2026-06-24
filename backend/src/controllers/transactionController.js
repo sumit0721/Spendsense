@@ -22,6 +22,9 @@ const getTransactions = asyncHandler(async (req, res) => {
   if (req.query.category) {
     filter.category = req.query.category;
   }
+  if (req.query.search) {
+    filter.merchant = { $regex: req.query.search, $options: 'i' };
+  }
 
   // Execute count and query in parallel for performance
   const [transactions, totalCount] = await Promise.all([

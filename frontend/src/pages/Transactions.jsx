@@ -16,15 +16,26 @@ export default function Transactions() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [activeCategory, setActiveCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
   const LIMIT = 10;
+
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const params = { page, limit: LIMIT };
       if (activeCategory) params.category = activeCategory;
+      if (debouncedSearch) params.search = debouncedSearch;
       const res = await getTransactions(params);
       setTransactions(res.transactions || []);
       setTotalPages(res.totalPages || 1);
@@ -41,7 +52,7 @@ export default function Transactions() {
 
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+  }, [fetchTransactions, debouncedSearch, activeCategory, page]);
 
   const handleExport = () => {
     if (!transactions.length) return alert('No transactions to export.');
@@ -87,6 +98,8 @@ export default function Transactions() {
             className="bg-transparent border-none focus:ring-0 text-[16px] w-48 placeholder:text-on-surface-variant/50 outline-none"
             placeholder="Search transactions..."
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </TopBar>
@@ -95,16 +108,27 @@ export default function Transactions() {
         {/* Filters */}
         <section className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
-            {filterButtons.map(({ label, icon }) => (
-              <button
-                key={label}
-                onClick={() => alert(`Advanced filtering by ${label} coming soon!`)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[14px] font-medium hover:bg-slate-100 dark:hover:bg-dark-surface-container-low transition-colors text-on-surface whitespace-nowrap"
+            <div className="flex items-center gap-1.5 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[14px] font-medium hover:bg-surface-container-high transition-colors text-on-surface whitespace-nowrap">
+              <Tag size={16} />
+              <select 
+                className="bg-transparent outline-none cursor-pointer"
+                value={activeCategory || ''}
+                onChange={(e) => setActiveCategory(e.target.value || null)}
               >
-                {icon}
-                {label}
-              </button>
-            ))}
+                <option value="">All Categories</option>
+                {['Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel', 'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <button onClick={() => alert("Advanced filtering by Date Range coming soon!")} className="flex items-center gap-1.5 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[14px] font-medium hover:bg-surface-container-high transition-colors text-on-surface whitespace-nowrap">
+              <Calendar size={16} />
+              Date Range
+            </button>
+            <button onClick={() => alert("Advanced filtering by Amount coming soon!")} className="flex items-center gap-1.5 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-[14px] font-medium hover:bg-surface-container-high transition-colors text-on-surface whitespace-nowrap">
+              <IndianRupee size={14} />
+              Amount
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <Button

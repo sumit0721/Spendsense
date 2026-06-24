@@ -86,6 +86,19 @@ export const getBudgetForecast = async () => {
   return response.data;
 };
 
+export const getBudget = async (month, year) => {
+  const params = new URLSearchParams();
+  if (month) params.append('month', month);
+  if (year) params.append('year', year);
+  const response = await api.get(`/budgets?${params.toString()}`);
+  return response.data;
+};
+
+export const setBudget = async (budgetData) => {
+  const response = await api.post('/budgets', budgetData);
+  return response.data;
+};
+
 export const askAdvisor = async (prompt) => {
   const response = await api.post('/advisor/ask', { prompt });
   return response.data;

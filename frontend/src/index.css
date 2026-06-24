@@ -3,118 +3,91 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: #0f172a;
+    --color-on-primary: #ffffff;
+    --color-primary-container: #1e293b;
+    --color-on-primary-container: #f8fafc;
+    --color-secondary: #505f76;
+    --color-accent: #ea580c;
+    --color-accent-hover: #c2410c;
+    --color-success: #059669;
+    --color-error: #ba1a1a;
+    --color-error-container: #fde8e8;
+    --color-on-error-container: #ba1a1a;
+    --color-surface: #fcf8fa;
+    --color-surface-container: #ffffff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f5f1f3;
+    --color-surface-container-high: #e8e3e6;
+    --color-outline-variant: #c6c6cd;
+    --color-on-surface: #1b1b1d;
+    --color-on-surface-variant: #45464d;
+    --color-anomaly-bg: #ffedd5;
+    --color-anomaly-text: #c2410c;
+    --color-anomaly-border: #ea580c;
+    --shadow-card: 0px 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --color-primary: #f0f6ff;
+    --color-on-primary: #0f172a;
+    --color-primary-container: #1e293b;
+    --color-on-primary-container: #94a3b8;
+    --color-secondary: #8b949e;
+    --color-accent: #fb923c;
+    --color-accent-hover: #f97316;
+    --color-success: #3fb950;
+    --color-error: #f85149;
+    --color-error-container: #3d1a1a;
+    --color-on-error-container: #f85149;
+    --color-surface: #0d1117;
+    --color-surface-container: #161b22;
+    --color-surface-container-lowest: #161b22;
+    --color-surface-container-low: #1c2128;
+    --color-surface-container-high: #252c36;
+    --color-outline-variant: #30363d;
+    --color-on-surface: #e6edf3;
+    --color-on-surface-variant: #8b949e;
+    --color-anomaly-bg: #3d1f0a;
+    --color-anomaly-text: #fb923c;
+    --color-anomaly-border: #ea580c;
+    --shadow-card: 0px 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
   body {
     @apply bg-surface text-on-surface font-sans antialiased transition-colors duration-300;
     font-size: 16px;
   }
 
-  /* ── Dark mode CSS variable overrides ── */
-  :root {
-    --color-surface: #fcf8fa;
-    --color-on-surface: #1b1b1d;
-    --color-border: #c6c6cd;
+  html.dark input, html.dark textarea, html.dark select {
+    background-color: var(--color-surface-container-low);
+    color: var(--color-on-surface);
+    border-color: var(--color-outline-variant);
   }
-
-  html.dark {
-    color-scheme: dark;
+  html.dark input::placeholder, html.dark textarea::placeholder {
+    color: var(--color-on-surface-variant);
+    opacity: 0.6;
   }
-
-  /* Apply dark background/text globally */
-  html.dark body {
-    background-color: #0d1117;
-    color: #e6edf3;
-  }
-
-  /* Dark mode overrides for all common utility patterns */
-  html.dark .bg-surface              { background-color: #0d1117; }
-  html.dark .bg-surface-container    { background-color: #161b22; }
-  html.dark .bg-surface-container-lowest { background-color: #161b22; }
-  html.dark .bg-surface-container-low    { background-color: #1c2128; }
-  html.dark .bg-surface-container-high   { background-color: #252c36; }
-
-  html.dark .text-on-surface         { color: #e6edf3; }
-  html.dark .text-on-surface-variant { color: #8b949e; }
-  html.dark .text-secondary          { color: #8b949e; }
-  
-  html.dark .bg-primary              { background-color: #f0f6ff; }
-  html.dark .text-on-primary         { color: #0f172a; }
-
-  html.dark .border-outline-variant  { border-color: #30363d; }
-
-  html.dark .text-error              { color: #f85149; }
-  html.dark .bg-error-container      { background-color: #3d1a1a; }
-  html.dark .text-on-error-container { color: #f85149; }
-
-  html.dark .text-success            { color: #3fb950; }
-  html.dark .bg-anomaly-bg           { background-color: #3d1f0a; }
-  html.dark .text-anomaly-text       { color: #fb923c; }
-  html.dark .bg-anomaly-border       { background-color: #ea580c; }
-
-  html.dark .bg-white                { background-color: #161b22; }
-  html.dark .bg-slate-100            { background-color: #1c2128; }
-  html.dark .bg-slate-900            { background-color: #e6edf3; }
-  html.dark .text-slate-900          { color: #e6edf3; }
-  html.dark .text-slate-500          { color: #8b949e; }
-
-  html.dark .card-shadow             { box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-
-  /* Input/form dark mode */
-  html.dark input,
-  html.dark textarea,
-  html.dark select {
-    background-color: #1c2128;
-    color: #e6edf3;
-    border-color: #30363d;
-  }
-  html.dark input::placeholder,
-  html.dark textarea::placeholder {
-    color: #484f58;
-  }
-  html.dark input:focus,
-  html.dark textarea:focus,
-  html.dark select:focus {
-    border-color: #58a6ff;
+  html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
+    border-color: var(--color-accent);
   }
 }
 
-/* ── Animations ── */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes modalIn { from { transform: translateY(32px) scale(0.97); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideIn {
-  from { transform: translateY(10px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-@keyframes modalIn {
-  from { transform: translateY(32px) scale(0.97); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
-}
-
-.animate-shake    { animation: shake   0.2s ease-in-out 0s 2; }
-.animate-fade-in  { animation: fadeIn  0.3s ease-out forwards; }
+.animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 .animate-slide-in { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-modal-in { animation: modalIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* ── Custom Scrollbar ── */
-::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #c6c6cd; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
-
-html.dark ::-webkit-scrollbar-thumb { background: #30363d; }
-html.dark ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+::-webkit-scrollbar-thumb { background: var(--color-outline-variant); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-on-surface-variant); }

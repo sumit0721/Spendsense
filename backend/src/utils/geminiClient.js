@@ -1,60 +1,70 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-/**
- * Cascade fallback pattern for Gemini model initialization.
- * Tries preferred models in order, falling back gracefully if unavailable.
- */
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 const MODEL_CASCADE = [
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
+  'gemini-2.5-flash',
+  'gemini-3.5-flash',
+  'gemini-3-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-3.1-flash-lite', // 500 RPD — safety net, highest quota
 ];
 
-let _client = null;
-let _model = null;
-
-/**
- * Initialize the Gemini client.
- * Lazily creates a singleton instance on first call.
- *
- * @returns {{ client: GoogleGenerativeAI, model: GenerativeModel }}
- */
-const getGeminiClient = () => {
-  if (_client && _model) {
-    return { client: _client, model: _model };
+async function callWithRetry(model, promptFn, retries = 2) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await promptFn(model);
+    } catch (error) {
+      const status = error?.status;
+      if (status === 503 && attempt < retries) {
+        const delay = attempt * 1500;
+        console.warn(`[Gemini] 503 on attempt ${attempt}, retrying in ${delay}ms...`);
+        await new Promise((res) => setTimeout(res, delay));
+        continue;
+      }
+      throw error;
+    }
   }
+}
 
-  const apiKey = process.env.GEMINI_API_KEY;
+async function callGeminiWithFallback(promptFn) {
+  let lastError = null;
 
-  if (!apiKey) {
-    console.warn(
-      '[GeminiClient] GEMINI_API_KEY not set — AI features will be unavailable.'
-    );
-    return { client: null, model: null };
-  }
-
-  _client = new GoogleGenerativeAI(apiKey);
-
-  // Try each model in the cascade until one initializes
   for (const modelName of MODEL_CASCADE) {
     try {
-      _model = _client.getGenerativeModel({ model: modelName });
-      console.log(`[GeminiClient] Initialized with model: ${modelName}`);
-      break;
-    } catch (err) {
-      console.warn(
-        `[GeminiClient] Model ${modelName} unavailable, trying next...`
-      );
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await callWithRetry(model, promptFn);
+
+      if (modelName !== MODEL_CASCADE[0]) {
+        console.info(`[Gemini] Served by fallback model: ${modelName}`);
+      }
+
+      return result;
+    } catch (error) {
+      const status = error?.status;
+
+      // 404 added: a wrong/deprecated model name should cascade to the
+      // next model, not crash the whole request. This is the actual fix
+      // for "model not found" — the model-name swap alone doesn't cover it.
+      if (status === 429 || status === 503 || status === 404) {
+        console.warn(`[Gemini] ${modelName} returned ${status}, moving to next model...`);
+        lastError = error;
+        continue;
+      }
+
+      console.error(`[Gemini] Hard error from ${modelName}:`, error?.message);
+      throw error;
     }
   }
 
-  if (!_model) {
-    console.error(
-      '[GeminiClient] All models in cascade failed to initialize.'
-    );
-  }
+  console.error('[Gemini] All models exhausted.');
+  const err = new Error('Our AI is at capacity right now. Please try again in a few minutes.');
+  err.statusCode = 503;
+  throw err;
+}
 
-  return { client: _client, model: _model };
-};
+function getModel(modelName = MODEL_CASCADE[0]) {
+  return genAI.getGenerativeModel({ model: modelName });
+}
 
-module.exports = { getGeminiClient, MODEL_CASCADE };
+module.exports = { callGeminiWithFallback, getModel, MODEL_CASCADE };

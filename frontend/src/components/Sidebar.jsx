@@ -16,14 +16,14 @@ export default function Sidebar() {
     <aside className="w-64 border-r border-outline-variant dark:border-dark-outline-variant h-screen bg-surface-container dark:bg-dark-surface-container flex flex-col justify-between fixed top-0 left-0 hidden md:flex z-20">
       <div className="flex flex-col gap-lg p-lg">
         {/* Brand Logo */}
-        <div className="flex items-center gap-xs">
+        <NavLink to="/" className="flex items-center gap-xs hover:opacity-80 transition-opacity">
           <div className="p-xs bg-primary text-white rounded-lg">
             <Wallet className="w-5 h-5" />
           </div>
           <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">
             SpendSense
           </span>
-        </div>
+        </NavLink>
 
         {/* Navigation links */}
         <nav className="flex flex-col gap-xs">
