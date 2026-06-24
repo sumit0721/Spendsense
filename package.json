@@ -1,0 +1,11 @@
+{
+  "name": "spendsense-root",
+  "version": "1.0.0",
+  "description": "SpendSense Root Scaffolding",
+  "scripts": {
+    "install-all": "npm install --prefix backend && npm install --legacy-peer-deps --prefix frontend",
+    "dev": "node dev.mjs",
+    "lint-all": "npm run lint --prefix backend && npm run lint --prefix frontend"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans antialiased transition-colors duration-300;
+    font-size: 16px;
+  }
+
+  /* ── Dark mode CSS variable overrides ── */
+  :root {
+    --color-surface: #fcf8fa;
+    --color-on-surface: #1b1b1d;
+    --color-border: #c6c6cd;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Apply dark background/text globally */
+  html.dark body {
+    background-color: #0d1117;
+    color: #e6edf3;
+  }
+
+  /* Dark mode overrides for all common utility patterns */
+  html.dark .bg-surface              { background-color: #0d1117; }
+  html.dark .bg-surface-container    { background-color: #161b22; }
+  html.dark .bg-surface-container-lowest { background-color: #161b22; }
+  html.dark .bg-surface-container-low    { background-color: #1c2128; }
+  html.dark .bg-surface-container-high   { background-color: #252c36; }
+
+  html.dark .text-on-surface         { color: #e6edf3; }
+  html.dark .text-on-surface-variant { color: #8b949e; }
+  html.dark .text-secondary          { color: #8b949e; }
+  
+  html.dark .bg-primary              { background-color: #f0f6ff; }
+  html.dark .text-on-primary         { color: #0f172a; }
+
+  html.dark .border-outline-variant  { border-color: #30363d; }
+
+  html.dark .text-error              { color: #f85149; }
+  html.dark .bg-error-container      { background-color: #3d1a1a; }
+  html.dark .text-on-error-container { color: #f85149; }
+
+  html.dark .text-success            { color: #3fb950; }
+  html.dark .bg-anomaly-bg           { background-color: #3d1f0a; }
+  html.dark .text-anomaly-text       { color: #fb923c; }
+  html.dark .bg-anomaly-border       { background-color: #ea580c; }
+
+  html.dark .bg-white                { background-color: #161b22; }
+  html.dark .bg-slate-100            { background-color: #1c2128; }
+  html.dark .bg-slate-900            { background-color: #e6edf3; }
+  html.dark .text-slate-900          { color: #e6edf3; }
+  html.dark .text-slate-500          { color: #8b949e; }
+
+  html.dark .card-shadow             { box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+
+  /* Input/form dark mode */
+  html.dark input,
+  html.dark textarea,
+  html.dark select {
+    background-color: #1c2128;
+    color: #e6edf3;
+    border-color: #30363d;
+  }
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: #484f58;
+  }
+  html.dark input:focus,
+  html.dark textarea:focus,
+  html.dark select:focus {
+    border-color: #58a6ff;
+  }
+}
+
+/* ── Animations ── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { transform: translateY(32px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+.animate-shake    { animation: shake   0.2s ease-in-out 0s 2; }
+.animate-fade-in  { animation: fadeIn  0.3s ease-out forwards; }
+.animate-slide-in { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-modal-in { animation: modalIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c6c6cd; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+html.dark ::-webkit-scrollbar-thumb { background: #30363d; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #484f58; }

@@ -1,0 +1,99 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Response interceptor for token rotation on 401
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // Check if error is 401 and request hasn't been retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        // Attempt to refresh token
+        await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+        // Retry original request
+        return api(originalRequest);
+      } catch (refreshError) {
+        // If refresh fails, log out user (handled at application layer or by redirect)
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+export const loginUser = async (email, password) => {
+  const response = await api.post('/auth/login', { email, password });
+  return response.data;
+};
+
+export const registerUser = async (name, email, password) => {
+  const response = await api.post('/auth/register', { name, email, password });
+  return response.data;
+};
+
+export const logoutUser = async () => {
+  const response = await api.post('/auth/logout');
+  return response.data;
+};
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const getTransactions = async (page = 1, limit = 10, filters = {}) => {
+  let p = page;
+  let l = limit;
+  let f = filters;
+
+  if (typeof page === 'object' && page !== null) {
+    p = page.page || 1;
+    l = page.limit || 10;
+    f = { ...page };
+    delete f.page;
+    delete f.limit;
+  }
+
+  const params = new URLSearchParams({ page: p, limit: l, ...f });
+  const response = await api.get(`/transactions?${params.toString()}`);
+  return response.data;
+};
+
+export const createTransaction = async (transactionData) => {
+  const response = await api.post('/transactions', transactionData);
+  return response.data;
+};
+
+export const getBudgetForecast = async () => {
+  const response = await api.get('/budgets/forecast');
+  return response.data;
+};
+
+export const askAdvisor = async (prompt) => {
+  const response = await api.post('/advisor/ask', { prompt });
+  return response.data;
+};
+
+export const getTransactionStats = async (days = 90) => {
+  const response = await api.get(`/transactions/stats?days=${days}`);
+  return response.data;
+};
+
+export default api;
