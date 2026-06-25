@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: spendsense-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: always
+    environment:
+      - NODE_ENV=production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: spendsense-frontend
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      - backend
