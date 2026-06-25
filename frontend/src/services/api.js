@@ -101,6 +101,11 @@ export const createTransaction = async (transactionData) => {
   return response.data;
 };
 
+export const deleteTransaction = async (id) => {
+  const response = await api.delete(`/transactions/${id}`);
+  return response.data;
+};
+
 export const getBudgetForecast = async () => {
   const response = await api.get('/budgets/forecast');
   return response.data;
@@ -134,13 +139,22 @@ export const getDashboardSummary = async () => {
   return res.data;
 };
 
+export const getMonthlyTrend = async (months = 6) => {
+  const res = await api.get(`/transactions/trend?months=${months}`);
+  return res.data;
+};
+
 export const getGoals = async () => (await api.get('/goals')).data;
 export const createGoal = async (data) => (await api.post('/goals', data)).data;
-export const updateGoalProgress = async (id, amount) => (await api.patch(`/goals/${id}/progress`, { amount })).data;
+export const updateGoalProgress = async (id, data) => (await api.patch(`/goals/${id}/progress`, data)).data;
+export const updateGoal = async (id, data) => (await api.put(`/goals/${id}`, data)).data;
 export const deleteGoal = async (id) => (await api.delete(`/goals/${id}`)).data;
+export const deleteGoalContribution = async (goalId, contributionId) => (await api.delete(`/goals/${goalId}/contributions/${contributionId}`)).data;
+export const editGoalContribution = async (goalId, contributionId, data) => (await api.put(`/goals/${goalId}/contributions/${contributionId}`, data)).data;
 
 export const getRecurring = async () => (await api.get('/recurring')).data;
 export const createRecurring = async (data) => (await api.post('/recurring', data)).data;
+export const updateRecurring = async (id, data) => (await api.put(`/recurring/${id}`, data)).data;
 export const deleteRecurring = async (id) => (await api.delete(`/recurring/${id}`)).data;
 
 export const exportPDF = async () => {

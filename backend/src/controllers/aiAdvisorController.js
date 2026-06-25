@@ -62,6 +62,7 @@ const askAdvisor = asyncHandler(async (req, res) => {
       name: g.name, target: g.targetAmount, saved: g.savedAmount,
       remaining: g.targetAmount - g.savedAmount,
       percentComplete: Math.round((g.savedAmount / g.targetAmount) * 100),
+      fundingHistory: (g.contributions || []).map(c => ({ amount: c.amount, date: c.date.toISOString().split('T')[0], notes: c.notes || '' }))
     })),
     recurringMonthlyCommitments: recurring.map(r => ({ merchant: r.merchant, amount: r.amount, category: r.category })),
   };
@@ -166,25 +167,8 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
 
   let advisorySentence = 'Your spending velocity is looking great! All categories are currently projected to stay within budget limits.';
 
-  if (overBudgetWarnings.length > 0 && process.env.GEMINI_API_KEY) {
-    const forecastPrompt = `You are a student finance advisor in India. All amounts are in Indian Rupees (₹) — always use ₹, never $.
-We have programmatically projected the user's monthly spending based on daily velocity.
-The user is projected to exceed their budget limit in the following categories:
-${overBudgetWarnings.join('\n')}
-
-Translate this data into exactly one concise, friendly advisory sentence for the student. Do not do any math. Do not mention the exact numbers. Focus on suggesting an actionable adjustment.`;
-
-    try {
-      let text;
-      await callGeminiWithFallback(async (model) => {
-        const result = await model.generateContent(forecastPrompt);
-        text = result.response.text();
-      });
-      advisorySentence = text.replace(/^"|"$/g, '');
-    } catch (err) {
-      console.error('[Gemini Forecast Advisory Error]:', err.message);
-      advisorySentence = `You are projected to exceed your budget limit in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}. Try trimming discretionary costs.`;
-    }
+  if (overBudgetWarnings.length > 0) {
+    advisorySentence = `You are projected to exceed your budget limit in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}. Try trimming discretionary costs.`;
   }
 
   const forecastsList = Object.keys(categoryForecasts).map(cat => ({

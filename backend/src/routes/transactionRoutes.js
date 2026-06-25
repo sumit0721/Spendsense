@@ -1,5 +1,5 @@
 const express = require('express');
-const { getTransactions, createTransaction, getTransactionStats, getDashboardSummary } = require('../controllers/transactionController');
+const { getTransactions, createTransaction, deleteTransaction, getTransactionStats, getDashboardSummary, getMonthlyTrend } = require('../controllers/transactionController');
 const { exportPDF, exportExcel } = require('../controllers/exportController');
 const { protect } = require('../middleware/auth');
 
@@ -11,6 +11,8 @@ router.get('/stats', getTransactionStats);
 router.get('/summary', getDashboardSummary);
 router.get('/export/pdf', exportPDF);
 router.get('/export/excel', exportExcel);
+router.get('/trend', getMonthlyTrend);
 router.route('/').get(getTransactions).post(createTransaction);
+router.delete('/:id', deleteTransaction);
 
 module.exports = router;

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Repeat, Trash2 } from 'lucide-react';
+import { Plus, Repeat, Trash2, Pencil } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import Button from '../components/Button';
-import { getRecurring, createRecurring, deleteRecurring } from '../services/api';
+import { getRecurring, createRecurring, deleteRecurring, updateRecurring } from '../services/api';
 
 const CATEGORIES = ['Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel', 'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other'];
 
@@ -12,6 +12,7 @@ export default function RecurringTransactions() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -40,7 +41,7 @@ export default function RecurringTransactions() {
   return (
     <>
       <TopBar title="Recurring Transactions" subtitle="Bills that repeat every month">
-        <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+        <Button variant="primary" size="sm" onClick={() => { setEditingItem(null); setShowModal(true); }}>
           <Plus size={16} /> Add Recurring
         </Button>
       </TopBar>
@@ -57,7 +58,7 @@ export default function RecurringTransactions() {
             title="No recurring transactions set up"
             description="Add Netflix, rent, EMI, or any other monthly bill so it auto-adds itself every month."
             actionLabel="Add your first recurring transaction"
-            onAction={() => setShowModal(true)}
+            onAction={() => { setEditingItem(null); setShowModal(true); }}
           />
         ) : (
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl divide-y divide-outline-variant">
@@ -74,9 +75,14 @@ export default function RecurringTransactions() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-[14px] font-semibold tabular-nums text-on-surface">₹{item.amount.toFixed(2)}</span>
-                  <button onClick={() => handleDelete(item._id)} className="text-on-surface-variant hover:text-error p-1">
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => { setEditingItem(item); setShowModal(true); }} className="text-on-surface-variant hover:text-primary p-1">
+                      <Pencil size={16} />
+                    </button>
+                    <button onClick={() => handleDelete(item._id)} className="text-on-surface-variant hover:text-error p-1">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -85,17 +91,22 @@ export default function RecurringTransactions() {
       </div>
 
       {showModal && (
-        <CreateRecurringModal onClose={() => setShowModal(false)} onSuccess={() => { setShowModal(false); fetchItems(); }} />
+        <CreateRecurringModal 
+          onClose={() => { setShowModal(false); setEditingItem(null); }} 
+          onSuccess={() => { setShowModal(false); setEditingItem(null); fetchItems(); }}
+          initialData={editingItem}
+        />
       )}
     </>
   );
 }
 
-function CreateRecurringModal({ onClose, onSuccess }) {
-  const [merchant, setMerchant] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(CATEGORIES[0]);
-  const [dayOfMonth, setDayOfMonth] = useState('1');
+function CreateRecurringModal({ onClose, onSuccess, initialData }) {
+  const isEdit = !!initialData;
+  const [merchant, setMerchant] = useState(initialData?.merchant || '');
+  const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
+  const [category, setCategory] = useState(initialData?.category || CATEGORIES[0]);
+  const [dayOfMonth, setDayOfMonth] = useState(initialData?.dayOfMonth?.toString() || '1');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -107,12 +118,15 @@ function CreateRecurringModal({ onClose, onSuccess }) {
     }
     setSubmitting(true);
     try {
-      await createRecurring({
-        merchant: merchant.trim(), amount: parseFloat(amount), category, dayOfMonth: parseInt(dayOfMonth, 10),
-      });
+      const data = { merchant: merchant.trim(), amount: parseFloat(amount), category, dayOfMonth: parseInt(dayOfMonth, 10) };
+      if (isEdit) {
+        await updateRecurring(initialData._id, data);
+      } else {
+        await createRecurring(data);
+      }
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create recurring transaction.');
+      setError(err.response?.data?.message || `Failed to ${isEdit ? 'update' : 'create'} recurring transaction.`);
     } finally {
       setSubmitting(false);
     }
@@ -121,7 +135,7 @@ function CreateRecurringModal({ onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-xl p-6 w-full max-w-sm space-y-4 animate-modal-in">
-        <h3 className="text-[18px] font-semibold text-on-surface">Add Recurring Transaction</h3>
+        <h3 className="text-[18px] font-semibold text-on-surface">{isEdit ? 'Edit' : 'Add'} Recurring Transaction</h3>
         {error && <p className="text-[13px] text-error">{error}</p>}
         <div>
           <label className="text-[13px] font-medium text-on-surface-variant">Name</label>

@@ -121,29 +121,40 @@ const checkAnomaly = async (userId, category, amount) => {
  * @access  Private
  */
 const createTransaction = asyncHandler(async (req, res) => {
-  const { merchant, amount, category, date, notes } = req.body;
+  const { merchant, amount, category, date, notes, type, paymentMethod } = req.body;
 
-  if (!merchant || amount === undefined || !category) {
-    throw new AppError('Merchant, amount, and category are required', 400);
+  if (!merchant || amount === undefined || !category || !type) {
+    throw new AppError('Merchant, amount, category, and type (income/expense) are required', 400);
+  }
+  if (!['income', 'expense'].includes(type)) {
+    throw new AppError('Type must be income or expense', 400);
   }
 
-  // Calculate anomaly status before saving
-  const isAnomaly = await checkAnomaly(req.user._id, category, amount);
+  // Anomaly detection only applies to expenses — an unusually large
+  // income deposit isn't a spending anomaly, it's just good news.
+  const isAnomaly = type === 'expense' ? await checkAnomaly(req.user._id, category, amount) : false;
 
   const transaction = await Transaction.create({
     user: req.user._id,
     merchant,
     amount,
+    type,
     category,
+    paymentMethod: paymentMethod || 'Other',
     date: date || Date.now(),
     notes,
     isAnomaly,
   });
 
-  res.status(201).json({
-    success: true,
-    transaction,
-  });
+  res.status(201).json({ success: true, transaction });
+});
+
+const deleteTransaction = asyncHandler(async (req, res) => {
+  const transaction = await Transaction.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+  if (!transaction) {
+    throw new AppError('Transaction not found', 404);
+  }
+  res.status(200).json({ success: true });
 });
 
 const getTransactionStats = asyncHandler(async (req, res) => {
@@ -185,7 +196,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
       {
         $match: {
           user: req.user._id,
-          date: { $gte: startDate }
+          date: { $gte: startDate },
+          type: { $ne: 'income' }
         }
       },
       {
@@ -211,7 +223,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
       {
         $match: {
           user: req.user._id,
-          date: { $gte: startDate }
+          date: { $gte: startDate },
+          type: { $ne: 'income' }
         }
       },
       {
@@ -242,7 +255,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
       {
         $match: {
           user: req.user._id,
-          date: { $gte: currentMonthStart }
+          date: { $gte: currentMonthStart },
+          type: { $ne: 'income' }
         }
       },
       {
@@ -258,7 +272,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
       {
         $match: {
           user: req.user._id,
-          date: { $gte: prevMonthStart, $lte: prevMonthEndRelative }
+          date: { $gte: prevMonthStart, $lte: prevMonthEndRelative },
+          type: { $ne: 'income' }
         }
       },
       {
@@ -274,7 +289,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
       {
         $match: {
           user: req.user._id,
-          date: { $gte: prevMonthStart, $lte: prevMonthEnd }
+          date: { $gte: prevMonthStart, $lte: prevMonthEnd },
+          type: { $ne: 'income' }
         }
       },
       {
@@ -323,7 +339,8 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   ]);
 
   const income = totals.find((t) => t._id === 'income')?.total || 0;
-  const expense = totals.find((t) => t._id === 'expense')?.total || 0;
+  // Sum up everything that is NOT income as an expense
+  const expense = totals.filter((t) => t._id !== 'income').reduce((acc, t) => acc + t.total, 0);
 
   res.status(200).json({
     success: true,
@@ -333,4 +350,36 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getTransactions, createTransaction, getTransactionStats, getDashboardSummary };
+const getMonthlyTrend = asyncHandler(async (req, res) => {
+  const monthsBack = Math.min(12, Math.max(1, parseInt(req.query.months, 10) || 6));
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth() - (monthsBack - 1), 1);
+
+  const trend = await Transaction.aggregate([
+    { $match: { user: req.user._id, type: { $ne: 'income' }, date: { $gte: startDate } } },
+    {
+      $group: {
+        _id: { year: { $year: '$date' }, month: { $month: '$date' } },
+        total: { $sum: '$amount' },
+      }
+    },
+    { $sort: { '_id.year': 1, '_id.month': 1 } },
+  ]);
+
+  // Fill in months with zero spend so the chart doesn't skip gaps —
+  // a missing month should show ₹0, not just disappear from the x-axis.
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const result = [];
+  for (let i = monthsBack - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const match = trend.find((t) => t._id.year === d.getFullYear() && t._id.month === d.getMonth() + 1);
+    result.push({
+      label: `${monthNames[d.getMonth()]} ${d.getFullYear()}`,
+      total: match ? Math.round(match.total * 100) / 100 : 0,
+    });
+  }
+
+  res.status(200).json({ success: true, trend: result });
+});
+
+module.exports = { getTransactions, createTransaction, deleteTransaction, getTransactionStats, getDashboardSummary, getMonthlyTrend };

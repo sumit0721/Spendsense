@@ -31,7 +31,7 @@ export default function TopBar({ title, subtitle, children }) {
   });
 
   return (
-    <header className="h-16 border-b border-outline-variant dark:border-dark-outline-variant bg-surface-container/80 dark:bg-dark-surface-container/80 backdrop-blur px-md md:px-lg flex items-center justify-between sticky top-0 z-10 w-full shrink-0">
+    <header className="h-16 border-b border-outline-variant dark:border-dark-outline-variant bg-surface-container-lowest/95 backdrop-blur px-md md:px-lg flex items-center justify-between sticky top-0 z-10 w-full shrink-0">
       <div className="flex flex-col">
         <h2 className="text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-none m-0">
           {getPageTitle()}

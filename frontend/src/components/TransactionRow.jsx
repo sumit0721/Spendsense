@@ -7,8 +7,10 @@ import {
   Film,
   Heart,
   IndianRupee,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react';
+import { deleteTransaction } from '../services/api';
 import StatusChip from './StatusChip';
 import AnomalyBadge from './AnomalyBadge';
 
@@ -22,7 +24,7 @@ const categoryIcons = {
   'Salary': Briefcase,
 };
 
-export default function TransactionRow({ transaction, onRowClick }) {
+export default function TransactionRow({ transaction, onRowClick, onDeleteSuccess }) {
   const { merchant, amount, category, date, isAnomaly, status = 'cleared' } = transaction;
 
   const IconComponent = categoryIcons[category] || IndianRupee;
@@ -31,6 +33,19 @@ export default function TransactionRow({ transaction, onRowClick }) {
     day: 'numeric',
     year: 'numeric',
   });
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await deleteTransaction(transaction._id);
+        if (onDeleteSuccess) onDeleteSuccess();
+      } catch (err) {
+        console.error('Failed to delete transaction:', err);
+        alert('Failed to delete transaction. Please try again.');
+      }
+    }
+  };
 
   return (
     <tr
@@ -70,6 +85,13 @@ export default function TransactionRow({ transaction, onRowClick }) {
           <div className="flex items-center gap-[4px] mt-[2px]">
             {isAnomaly && <AnomalyBadge label="Flagged" className="scale-90 origin-right" />}
             {!isAnomaly && <StatusChip status={status} className="scale-90 origin-right" />}
+            <button
+              onClick={handleDelete}
+              className="text-on-surface-variant hover:text-error ml-2 p-1 rounded transition-colors"
+              title="Delete transaction"
+            >
+              <Trash2 size={16} />
+            </button>
           </div>
         </div>
       </td>

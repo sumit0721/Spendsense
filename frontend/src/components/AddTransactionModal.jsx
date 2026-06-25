@@ -2,42 +2,29 @@ import { useState, useEffect, useRef } from 'react';
 import { X, IndianRupee, Store, Tag, Calendar, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { createTransaction } from '../services/api';
 
-// Mirror of backend Transaction model CATEGORIES
-const CATEGORIES = [
-  'Rent',
-  'Groceries',
-  'Dining',
-  'Subscriptions',
-  'Travel',
-  'Education',
-  'Entertainment',
-  'Utilities',
-  'Shopping',
-  'Health',
-  'Other',
+const EXPENSE_CATEGORIES = [
+  'Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel',
+  'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other',
 ];
 
+const INCOME_CATEGORIES = ['Salary', 'Freelancing', 'Business', 'Other'];
+
 const CATEGORY_ICONS = {
-  Rent: '🏠',
-  Groceries: '🛒',
-  Dining: '🍽️',
-  Subscriptions: '📱',
-  Travel: '✈️',
-  Education: '📚',
-  Entertainment: '🎬',
-  Utilities: '⚡',
-  Shopping: '🛍️',
-  Health: '❤️',
-  Other: '📌',
+  Rent: '🏠', Groceries: '🛒', Dining: '🍽️', Subscriptions: '📱',
+  Travel: '✈️', Education: '📚', Entertainment: '🎬', Utilities: '⚡',
+  Shopping: '🛍️', Health: '❤️', Other: '📌',
+  Salary: '💼', Freelancing: '💻', Business: '🏢'
 };
 
 export default function AddTransactionModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
+    type: 'expense',
     merchant: '',
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
     notes: '',
+    paymentMethod: 'Other',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -64,7 +51,11 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'type') {
+      setForm((prev) => ({ ...prev, [name]: value, category: '' }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
     setError('');
   };
 
@@ -73,7 +64,7 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
     setError('');
 
     // Client-side validation
-    if (!form.merchant.trim()) return setError('Merchant name is required.');
+    if (form.type === 'expense' && !form.merchant.trim()) return setError('Merchant name is required.');
     if (!form.amount || isNaN(Number(form.amount)) || Number(form.amount) <= 0)
       return setError('Please enter a valid positive amount.');
     if (!form.category) return setError('Please select a category.');
@@ -82,9 +73,11 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
     setLoading(true);
     try {
       await createTransaction({
-        merchant: form.merchant.trim(),
+        type: form.type,
+        merchant: form.type === 'income' ? form.category : form.merchant.trim(),
         amount: parseFloat(Number(form.amount).toFixed(2)),
         category: form.category,
+        paymentMethod: form.paymentMethod,
         date: form.date,
         notes: form.notes.trim() || undefined,
       });
@@ -141,27 +134,50 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {/* Type Toggle */}
+            <div className="flex bg-surface-container-low p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() => handleChange({ target: { name: 'type', value: 'expense' } })}
+                className={`flex-1 py-1.5 text-[13px] font-medium rounded-md transition-all ${
+                  form.type === 'expense' ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                Expense
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange({ target: { name: 'type', value: 'income' } })}
+                className={`flex-1 py-1.5 text-[13px] font-medium rounded-md transition-all ${
+                  form.type === 'income' ? 'bg-surface-container-lowest text-on-surface shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                Income
+              </button>
+            </div>
 
             {/* Merchant + Amount — side by side */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass} htmlFor="at-merchant">Merchant</label>
-                <div className="relative">
-                  <Store size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
-                  <input
-                    ref={merchantRef}
-                    id="at-merchant"
-                    name="merchant"
-                    type="text"
-                    value={form.merchant}
-                    onChange={handleChange}
-                    placeholder="Starbucks"
-                    className={`${inputClass} pl-9`}
-                    maxLength={80}
-                    required
-                  />
+            <div className={`grid ${form.type === 'expense' ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+              {form.type === 'expense' && (
+                <div>
+                  <label className={labelClass} htmlFor="at-merchant">Merchant</label>
+                  <div className="relative">
+                    <Store size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60" />
+                    <input
+                      ref={merchantRef}
+                      id="at-merchant"
+                      name="merchant"
+                      type="text"
+                      value={form.merchant}
+                      onChange={handleChange}
+                      placeholder="Starbucks"
+                      className={`${inputClass} pl-9`}
+                      maxLength={80}
+                      required={form.type === 'expense'}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label className={labelClass} htmlFor="at-amount">Amount (₹)</label>
@@ -197,9 +213,9 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
                   required
                 >
                   <option value="" disabled>Select a category…</option>
-                  {CATEGORIES.map((cat) => (
+                  {(form.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
                     <option key={cat} value={cat}>
-                      {CATEGORY_ICONS[cat]} {cat}
+                      {CATEGORY_ICONS[cat] || '📌'} {cat}
                     </option>
                   ))}
                 </select>

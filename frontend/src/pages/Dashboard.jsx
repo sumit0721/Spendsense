@@ -11,8 +11,9 @@ import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SetBudgetModal from '../components/SetBudgetModal';
-import { getTransactions, getTransactionStats, getBudgetForecast, getDashboardSummary } from '../services/api';
+import { getTransactions, getTransactionStats, getBudgetForecast, getDashboardSummary, getMonthlyTrend } from '../services/api';
 import CategoryPieChart from '../components/CategoryPieChart';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,20 +25,23 @@ export default function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [summary, setSummary] = useState(null);
+  const [trendData, setTrendData] = useState([]);
 
   const fetchData = async () => {
       try {
         setError(false);
-        const [transRes, statsRes, forecastRes, summaryRes] = await Promise.all([
+        const [transRes, statsRes, forecastRes, summaryRes, trendRes] = await Promise.all([
           getTransactions(1, 5),
           getTransactionStats(90),
           getBudgetForecast(),
-          getDashboardSummary()
+          getDashboardSummary(),
+          getMonthlyTrend()
         ]);
         setTransactions(transRes.transactions || []);
         setStats(statsRes);
         setForecast(forecastRes);
         setSummary(summaryRes);
+        setTrendData(trendRes.trend || []);
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError(true);
@@ -108,11 +112,6 @@ export default function Dashboard() {
                 icon={<TrendingUp size={18} />}
               />
               <MetricCard
-                label="Expense"
-                value={summary ? `₹${summary.expense.toFixed(2)}` : '—'}
-                icon={<Wallet size={18} />}
-              />
-              <MetricCard
                 label="Savings"
                 value={summary ? `₹${summary.savings.toFixed(2)}` : '—'}
                 trend={summary?.savings >= 0 ? 'up' : 'down'}
@@ -174,6 +173,30 @@ export default function Dashboard() {
                 </div>
               </div>
             </ChartContainer>
+
+            <ChartContainer title="Monthly Expense Trend">
+              <div className="h-[250px] w-full mt-4">
+                {loading ? (
+                  <LoadingState type="cards" />
+                ) : trendData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(val) => `₹${val}`} />
+                      <Tooltip
+                        cursor={{ fill: '#f3f4f6' }}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        formatter={(value) => [`₹${value}`, 'Expense']}
+                      />
+                      <Bar dataKey="total" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState title="No trend data" description="Not enough data to show a trend." />
+                )}
+              </div>
+            </ChartContainer>
           </section>
 
           <section className="lg:col-span-7">
@@ -197,7 +220,7 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant">
-                      {transactions.map((t) => (<TransactionRow key={t._id} transaction={t} />))}
+                      {transactions.map((t) => (<TransactionRow key={t._id} transaction={t} onDeleteSuccess={fetchData} />))}
                     </tbody>
                   </table>
                 )}

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Tag, IndianRupee, Download, Plus, X } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Calendar, Tag, IndianRupee, Download, Plus, X, FileText, FileSpreadsheet, File, FileDown } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import TransactionRow from '../components/TransactionRow';
 import Pagination from '../components/Pagination';
@@ -8,7 +8,6 @@ import EmptyState from '../components/EmptyState';
 import Button from '../components/Button';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { getTransactions, exportPDF, exportExcel } from '../services/api';
-import { FileDown } from 'lucide-react';
 
 const CATEGORIES = ['Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel', 'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other'];
 
@@ -31,6 +30,15 @@ export default function Transactions() {
   const [maxAmount, setMaxAmount] = useState('');
   const [showDatePopover, setShowDatePopover] = useState(false);
   const [showAmountPopover, setShowAmountPopover] = useState(false);
+  
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (exportRef.current && !exportRef.current.contains(e.target)) setShowExportMenu(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const LIMIT = 10;
 
@@ -82,6 +90,18 @@ export default function Transactions() {
     setMinAmount('');
     setMaxAmount('');
     setSearchQuery('');
+    setPage(1);
+  };
+
+  const applyPreset = (preset) => {
+    const now = new Date();
+    let start, end = now;
+    if (preset === '7days') { start = new Date(now); start.setDate(start.getDate() - 7); }
+    else if (preset === '30days') { start = new Date(now); start.setDate(start.getDate() - 30); }
+    else if (preset === 'thisMonth') { start = new Date(now.getFullYear(), now.getMonth(), 1); }
+    else if (preset === 'thisYear') { start = new Date(now.getFullYear(), 0, 1); }
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
     setPage(1);
   };
 
@@ -177,6 +197,22 @@ export default function Transactions() {
               </button>
               {showDatePopover && (
                 <div className="absolute top-full mt-2 left-0 bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow p-4 z-50 w-64 space-y-3">
+                  <div className="flex flex-wrap gap-1.5 pb-2 border-b border-outline-variant mb-2">
+                    {[
+                      { key: '7days', label: 'Last 7 days' },
+                      { key: '30days', label: 'Last 30 days' },
+                      { key: 'thisMonth', label: 'This Month' },
+                      { key: 'thisYear', label: 'This Year' },
+                    ].map((p) => (
+                      <button
+                        key={p.key}
+                        onClick={() => applyPreset(p.key)}
+                        className="text-[12px] px-2.5 py-1 bg-surface-container-low rounded-md hover:bg-surface-container-high"
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
                   <div>
                     <label className="text-[12px] font-medium text-on-surface-variant">From</label>
                     <input
@@ -282,16 +318,24 @@ export default function Transactions() {
               <Plus size={16} />
               Add Transaction
             </Button>
-            <Button variant="secondary" size="sm" onClick={handleExport}>
-              <Download size={16} />
-              Export (CSV)
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleExportPDF}>
-              <FileDown size={16} /> PDF
-            </Button>
-            <Button variant="secondary" size="sm" onClick={handleExportExcel}>
-              <FileDown size={16} /> Excel
-            </Button>
+            <div className="relative" ref={exportRef}>
+              <Button variant="secondary" size="sm" onClick={() => setShowExportMenu((p) => !p)}>
+                <Download size={16} /> Export
+              </Button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-44 bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow z-50 overflow-hidden">
+                  <button onClick={() => { handleExportPDF(); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-[14px] text-on-surface hover:bg-surface-container-low text-left">
+                    <FileText size={15} /> PDF
+                  </button>
+                  <button onClick={() => { handleExport(); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-[14px] text-on-surface hover:bg-surface-container-low text-left">
+                    <File size={15} /> CSV
+                  </button>
+                  <button onClick={() => { handleExportExcel(); setShowExportMenu(false); }} className="w-full flex items-center gap-2 px-4 py-2.5 text-[14px] text-on-surface hover:bg-surface-container-low text-left">
+                    <FileSpreadsheet size={15} /> Excel
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -319,7 +363,7 @@ export default function Transactions() {
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
                     {filteredTransactions.map((t) => (
-                      <TransactionRow key={t._id} transaction={t} />
+                      <TransactionRow key={t._id} transaction={t} onDeleteSuccess={fetchTransactions} />
                     ))}
                   </tbody>
                 </table>
