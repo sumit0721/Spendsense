@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, Sparkles, CheckCircle, ShoppingBag, Banknote, Brain } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
   // Scroll reveal on mount
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,12 +36,20 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/auth" className="text-on-surface-variant text-[14px] font-medium px-4 py-2 hover:bg-surface-container-low rounded-lg transition-all">
-              Login
-            </Link>
-            <Link to="/auth" className="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-black transition-all active:scale-95">
-              Get Started
-            </Link>
+            {user ? (
+              <Link to="/dashboard" className="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth" className="text-on-surface-variant text-[14px] font-medium px-4 py-2 hover:bg-surface-container-low rounded-lg transition-all">
+                  Login
+                </Link>
+                <Link to="/auth" className="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-black transition-all active:scale-95">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -61,13 +71,13 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to="/auth"
+                  to={user ? "/dashboard" : "/auth"}
                   className="bg-primary text-on-primary px-8 py-4 rounded-xl text-[14px] font-medium hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   Launch Dashboard
                 </Link>
                 <Link
-                  to="/auth"
+                  to={user ? "/advisor" : "/auth"}
                   className="bg-surface-container-lowest border border-outline-variant text-on-surface px-8 py-4 rounded-xl text-[14px] font-medium hover:bg-surface-container-low hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                 >
                   <Brain size={18} />
@@ -252,10 +262,10 @@ export default function Home() {
                 Join students who are taking control of their financial future with SpendSense.
               </p>
               <Link
-                to="/auth"
+                to={user ? "/dashboard" : "/auth"}
                 className="inline-block bg-white text-on-surface px-10 py-4 rounded-xl text-[14px] font-medium hover:bg-surface-container-low transition-all active:scale-95"
               >
-                Get Started Free
+                {user ? 'Go to Dashboard' : 'Get Started Free'}
               </Link>
             </div>
           </div>

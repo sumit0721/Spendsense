@@ -22,14 +22,46 @@ const getTransactions = asyncHandler(async (req, res) => {
   if (req.query.category) {
     filter.category = req.query.category;
   }
-  if (req.query.search) {
-    filter.merchant = { $regex: req.query.search, $options: 'i' };
+
+  // Date range filter — both bounds optional, independently usable.
+  // Invalid date strings are silently ignored rather than crashing the
+  // request, since this comes from user-controlled query params.
+  if (req.query.startDate || req.query.endDate) {
+    filter.date = {};
+    if (req.query.startDate) {
+      const start = new Date(req.query.startDate);
+      if (!isNaN(start.getTime())) filter.date.$gte = start;
+    }
+    if (req.query.endDate) {
+      const end = new Date(req.query.endDate);
+      if (!isNaN(end.getTime())) {
+        end.setHours(23, 59, 59, 999); // include the full end day
+        filter.date.$lte = end;
+      }
+    }
+    if (Object.keys(filter.date).length === 0) delete filter.date;
   }
 
-  // Execute count and query in parallel for performance
+  // Amount range filter — same optional-both-bounds pattern.
+  if (req.query.minAmount || req.query.maxAmount) {
+    filter.amount = {};
+    const min = parseFloat(req.query.minAmount);
+    const max = parseFloat(req.query.maxAmount);
+    if (!isNaN(min)) filter.amount.$gte = min;
+    if (!isNaN(max)) filter.amount.$lte = max;
+    if (Object.keys(filter.amount).length === 0) delete filter.amount;
+  }
+
+  let sortOption = { date: -1 };
+  if (req.query.sort) {
+    if (req.query.sort === 'date') sortOption = { date: 1 };
+    else if (req.query.sort === '-amount') sortOption = { amount: -1 };
+    else if (req.query.sort === 'amount') sortOption = { amount: 1 };
+  }
+
   const [transactions, totalCount] = await Promise.all([
     Transaction.find(filter)
-      .sort({ date: -1 })
+      .sort(sortOption)
       .skip(skip)
       .limit(limit)
       .lean(),

@@ -58,6 +58,26 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+export const updateProfile = async (profileData) => {
+  const response = await api.put('/auth/profile', profileData);
+  return response.data;
+};
+
+export const updatePassword = async (passwordData) => {
+  const response = await api.put('/auth/updatepassword', passwordData);
+  return response.data;
+};
+
+export const forgotPassword = async (email) => {
+  const response = await api.post('/auth/forgotpassword', { email });
+  return response.data;
+};
+
+export const resetPassword = async (email, otp, password) => {
+  const response = await api.put(`/auth/resetpassword`, { email, otp, password });
+  return response.data;
+};
+
 export const getTransactions = async (page = 1, limit = 10, filters = {}) => {
   let p = page;
   let l = limit;

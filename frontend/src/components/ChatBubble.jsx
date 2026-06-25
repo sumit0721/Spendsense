@@ -11,8 +11,8 @@ export default function ChatBubble({ message, isUser, children }) {
     <div className={`flex gap-sm max-w-[80%] ${isUser ? 'self-end flex-row-reverse' : 'self-start'} animate-slide-in`}>
       <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center border ${
         isUser
-          ? 'bg-white border-outline-variant text-on-surface'
-          : 'bg-primary border-primary text-white'
+          ? 'bg-surface-container-lowest border-outline-variant text-on-surface'
+          : 'bg-primary border-primary text-on-primary'
       }`}>
         {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
@@ -20,7 +20,7 @@ export default function ChatBubble({ message, isUser, children }) {
       <div className="flex flex-col gap-[4px] w-full">
         <div className={`p-md rounded-lg text-[14px] font-sans font-medium leading-relaxed border ${
           isUser
-            ? 'bg-white border-outline-variant text-on-surface rounded-tr-none shadow-sm'
+            ? 'bg-surface-container-lowest border-outline-variant text-on-surface rounded-tr-none shadow-sm'
             : 'bg-surface-container border-outline-variant/60 text-on-surface rounded-tl-none shadow-card'
         } flex flex-col gap-sm`}>
           <div>{message}</div>
@@ -39,7 +39,7 @@ export default function ChatBubble({ message, isUser, children }) {
 export function TypingIndicator() {
   return (
     <div className="flex gap-sm max-w-[80%] self-start animate-pulse">
-      <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-primary border-primary text-white">
+      <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-primary border-primary text-on-primary">
         <Bot className="w-4 h-4" />
       </div>
       <div className="bg-surface-container border border-outline-variant/60 px-md py-sm rounded-lg rounded-tl-none shadow-card flex items-center gap-1">

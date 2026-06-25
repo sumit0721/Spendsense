@@ -7,6 +7,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import AIAdvisor from './pages/AIAdvisor';
+import Profile from './pages/Profile';
 
 /**
  * Protected route wrapper — redirects to /auth if not authenticated.
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/advisor" element={<AIAdvisor />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Catch-all */}

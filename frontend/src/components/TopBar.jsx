@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { Bell, Calendar, Sun, Moon, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-
+import NotificationPanel from './NotificationPanel';
 export default function TopBar({ title, subtitle, children }) {
   const { user } = useAuth();
   const location = useLocation();
@@ -76,33 +76,17 @@ export default function TopBar({ title, subtitle, children }) {
         </button>
 
         {/* Notifications button */}
-        <div className="relative">
-          <button 
-            onClick={() => {
-              setShowNotification(true);
-              setTimeout(() => setShowNotification(false), 3000);
-            }}
-            className="p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none relative"
-          >
-            <Bell className="w-[18px] h-[18px]" />
-            <span className="absolute top-[2px] right-[2px] w-2 h-2 bg-error rounded-full ring-2 ring-white" />
-          </button>
-          {showNotification && (
-            <div className="absolute top-10 right-0 w-48 bg-surface dark:bg-dark-surface border border-outline-variant dark:border-dark-outline-variant rounded-lg shadow-lg p-3 z-50 animate-in fade-in slide-in-from-top-2">
-              <p className="text-[13px] text-on-surface font-medium text-center">No new notifications</p>
-            </div>
-          )}
-        </div>
+        <NotificationPanel />
 
         {/* User Info */}
-        <div className="flex items-center gap-xs pl-xs border-l border-outline-variant">
-          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[13px] uppercase">
+        <Link to="/profile" className="flex items-center gap-xs pl-xs border-l border-outline-variant hover:opacity-80 transition-opacity" title="Go to Profile">
+          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[13px] uppercase">
             {user?.name?.slice(0, 1) || 'U'}
           </div>
           <span className="hidden lg:block text-[13px] font-sans font-bold text-on-surface truncate max-w-[120px]">
             {user?.name || 'User'}
           </span>
-        </div>
+        </Link>
       </div>
     </header>
   );

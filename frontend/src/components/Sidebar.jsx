@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { LayoutDashboard, Receipt, Sparkles, LogOut, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,7 +17,7 @@ export default function Sidebar() {
       <div className="flex flex-col gap-lg p-lg">
         {/* Brand Logo */}
         <NavLink to="/" className="flex items-center gap-xs hover:opacity-80 transition-opacity">
-          <div className="p-xs bg-primary text-white rounded-lg">
+          <div className="p-xs bg-primary text-on-primary rounded-lg">
             <Wallet className="w-5 h-5" />
           </div>
           <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">
@@ -51,7 +51,7 @@ export default function Sidebar() {
 
       {/* User profile & Logout */}
       <div className="p-lg border-t border-outline-variant dark:border-dark-outline-variant flex flex-col gap-md">
-        <div className="flex items-center gap-sm">
+        <Link to="/profile" className="flex items-center gap-sm hover:opacity-80 transition-opacity cursor-pointer">
           <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-[14px] uppercase">
             {user?.name?.slice(0, 2) || 'US'}
           </div>
@@ -63,7 +63,7 @@ export default function Sidebar() {
               {user?.email || 'user@example.com'}
             </span>
           </div>
-        </div>
+        </Link>
         <button
           onClick={logout}
           className="flex items-center gap-sm px-md py-[10px] w-full text-[13px] font-medium text-error hover:bg-error/5 rounded-lg transition-colors border border-transparent hover:border-error/10 focus:outline-none"

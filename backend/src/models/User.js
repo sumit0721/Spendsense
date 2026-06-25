@@ -27,6 +27,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    age: {
+      type: Number,
+      min: [13, 'Must be at least 13 years old'],
+      max: [120, 'Invalid age'],
+    },
+    occupation: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Occupation cannot exceed 100 characters'],
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   {
     timestamps: true,
@@ -50,6 +62,26 @@ userSchema.pre('save', async function (next) {
  */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+/**
+ * Instance method — Generate and hash password reset OTP
+ */
+userSchema.methods.generatePasswordResetOTP = function () {
+  // Generate 6 digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Hash OTP and set to resetPasswordToken field (we'll keep the field name but store OTP hash)
+  const crypto = require('crypto');
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+
+  // Set expire (10 minutes)
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return otp;
 };
 
 module.exports = mongoose.model('User', userSchema);

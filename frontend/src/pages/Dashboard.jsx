@@ -12,7 +12,7 @@ import EmptyState from '../components/EmptyState';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SetBudgetModal from '../components/SetBudgetModal';
 import { getTransactions, getTransactionStats, getBudgetForecast } from '../services/api';
-import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import CategoryPieChart from '../components/CategoryPieChart';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -118,30 +118,18 @@ export default function Dashboard() {
                 {loading ? (
                   <LoadingState type="cards" />
                 ) : stats?.categoryTotals && stats.categoryTotals.length > 0 ? (
-                  <div className="h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={stats.categoryTotals.slice(0, 6)}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={3}
-                          dataKey="total"
-                          nameKey="category"
-                        >
-                          {stats.categoryTotals.slice(0, 6).map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => `₹${value.toFixed(2)}`}
-                          contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                  <div className="flex flex-col gap-6">
+                    <CategoryPieChart data={stats.categoryTotals} />
+                    <div className="space-y-4">
+                      {stats.categoryTotals.slice(0, 6).map((c) => (
+                        <CategoryBar
+                          key={c.category}
+                          category={c.category}
+                          amount={c.total}
+                          percentage={currentMonthTotal > 0 ? (c.total / currentMonthTotal) * 100 : 0}
                         />
-                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <EmptyState title="No category data" description="No transaction categories logged in the last 90 days." />
@@ -209,7 +197,7 @@ export default function Dashboard() {
 
       {/* Quick Action Buttons */}
       <div className="fixed bottom-20 md:bottom-8 right-8 flex flex-col gap-4 z-40">
-        <button onClick={() => setShowBudgetModal(true)} title={totalLimit > 0 ? "Edit Budget" : "Set Budget"} className="w-12 h-12 bg-secondary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group">
+        <button onClick={() => setShowBudgetModal(true)} title={totalLimit > 0 ? "Edit Budget" : "Set Budget"} className="w-12 h-12 bg-secondary text-white dark:text-surface-container-lowest rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group">
           <PieChart size={20} className="group-hover:rotate-12 transition-transform duration-300" />
         </button>
         <button onClick={() => setShowAddModal(true)} title="Add Transaction" className="w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group">

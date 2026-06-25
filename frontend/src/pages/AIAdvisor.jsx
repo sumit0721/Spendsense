@@ -1,20 +1,49 @@
-import { useState } from 'react';
-import { Send, Mic, Bot, History } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Mic, Bot, History, Trash2, AlertTriangle } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import ChatBubble, { TypingIndicator } from '../components/ChatBubble';
 import LoadingState from '../components/LoadingState';
 import { askAdvisor } from '../services/api';
 
 export default function AIAdvisor() {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      isUser: false,
-      text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('advisor_chat_history');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse chat history', e);
+      }
+    }
+    return [
+      {
+        id: 1,
+        isUser: false,
+        text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
+      },
+    ];
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('advisor_chat_history', JSON.stringify(messages));
+  }, [messages]);
+
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  const [showHistoryMenu, setShowHistoryMenu] = useState(false);
+  const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
+
+  const confirmClearHistory = () => {
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        isUser: false,
+        text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
+      },
+    ]);
+    setShowClearConfirmModal(false);
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -60,10 +89,70 @@ export default function AIAdvisor() {
   return (
     <>
       <TopBar title="AI Advisor">
-        <button className="p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
-          <History size={20} />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowHistoryMenu(!showHistoryMenu)}
+            title="Conversation History Options"
+            className="p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
+            <History size={20} />
+          </button>
+          
+          {showHistoryMenu && (
+            <div className="absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
+              <div className="p-3 border-b border-outline-variant bg-surface-container-low">
+                <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Conversation History</p>
+              </div>
+              <div className="p-2">
+                <button
+                  onClick={() => {
+                    setShowHistoryMenu(false);
+                    setShowClearConfirmModal(true);
+                  }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-[14px] font-medium text-error hover:bg-error-container/50 transition-colors flex items-center gap-2.5"
+                >
+                  <Trash2 size={16} />
+                  Clear Chat History
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </TopBar>
+
+      {/* Confirmation Modal */}
+      {showClearConfirmModal && (
+        <div className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-surface-container-lowest rounded-2xl w-full max-w-md card-shadow border border-outline-variant overflow-hidden animate-modal-in">
+            <div className="p-6">
+              <div className="flex gap-4 items-start">
+                <div className="p-3 bg-error-container text-on-error-container rounded-full shrink-0">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3 className="text-[18px] font-bold text-on-surface mb-2">Clear Chat History</h3>
+                  <p className="text-[14px] text-on-surface-variant leading-relaxed">
+                    Are you sure you want to clear your entire conversation history? This action cannot be undone and your AI advisor will start with a fresh context.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
+              <button
+                onClick={() => setShowClearConfirmModal(false)}
+                className="px-4 py-2 rounded-lg text-[14px] font-medium text-on-surface-variant hover:bg-surface-container transition-colors focus:outline-none"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClearHistory}
+                className="px-4 py-2 rounded-lg text-[14px] font-medium bg-error text-white hover:bg-error/90 shadow-sm transition-colors focus:outline-none"
+              >
+                Clear All Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat History */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col items-center">
