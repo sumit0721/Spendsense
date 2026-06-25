@@ -51,6 +51,7 @@ export default function Dashboard() {
     };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, []);
 
@@ -71,8 +72,7 @@ export default function Dashboard() {
   const budgetProgress = totalLimit > 0 ? (totalSpend / totalLimit) * 100 : undefined;
   const budgetProgressLabel = totalLimit > 0 ? `Spent ₹${totalSpend.toFixed(2)} of ₹${totalLimit.toFixed(2)}` : 'Set a budget to start tracking';
   
-  const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
-
+  
   const totalProjected = forecast?.forecasts?.reduce((acc, f) => acc + (f.projectedSpend || 0), 0) || 0;
   const projectedValue = totalLimit > 0 ? `₹${totalProjected.toFixed(2)}` : '—';
   const projectedTrend = totalLimit > 0 && totalProjected > totalLimit ? 'down' : 'neutral';

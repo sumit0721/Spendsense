@@ -1,7 +1,5 @@
-import React from 'react';
 import { AlertTriangle, Sparkles, X } from 'lucide-react';
 import Button from './Button';
-import AnomalyBadge from './AnomalyBadge';
 
 export default function InsightCard({
   type = 'anomaly', // 'anomaly' or 'ai'

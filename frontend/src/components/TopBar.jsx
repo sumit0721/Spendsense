@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+
 import { useLocation, Link } from 'react-router-dom';
-import { Bell, Calendar, Sun, Moon, Home } from 'lucide-react';
+import { Calendar, Sun, Moon, Home } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import NotificationPanel from './NotificationPanel';
@@ -8,8 +8,7 @@ export default function TopBar({ title, subtitle, children }) {
   const { user } = useAuth();
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
-  const [showNotification, setShowNotification] = useState(false);
-
+  
   const getPageTitle = () => {
     if (title) return title;
     switch (location.pathname) {

@@ -51,6 +51,7 @@ export default function NotificationPanel() {
       const newToasts = activeBudgets.filter(b => !toasted.includes(b.category));
       
       if (newToasts.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToasts(prev => [...prev, ...newToasts]);
         sessionStorage.setItem('toastedBudgets', JSON.stringify([...toasted, ...newToasts.map(b => b.category)]));
         setTimeout(() => {

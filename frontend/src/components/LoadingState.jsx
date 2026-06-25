@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function LoadingState({ type = 'card', count, rows, className = '' }) {
   const numItems = count || rows || 1;

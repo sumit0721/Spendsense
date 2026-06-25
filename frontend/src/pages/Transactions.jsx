@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Calendar, Tag, IndianRupee, Download, Plus, X, FileText, FileSpreadsheet, File, FileDown } from 'lucide-react';
+import { Calendar, IndianRupee, Download, Plus, X, FileText, FileSpreadsheet, File } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import TransactionRow from '../components/TransactionRow';
 import Pagination from '../components/Pagination';
@@ -66,6 +66,7 @@ export default function Transactions() {
   }, [page, activeCategory, startDate, endDate, minAmount, maxAmount, sortOption]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTransactions();
   }, [fetchTransactions]);
 

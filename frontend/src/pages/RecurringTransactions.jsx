@@ -26,7 +26,10 @@ export default function RecurringTransactions() {
     }
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchItems(); 
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Stop this recurring transaction? It will no longer auto-add monthly.')) return;

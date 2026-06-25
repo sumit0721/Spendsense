@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
       try {
         const data = await getCurrentUser();
         setUser(data.user);
-      } catch (err) {
+      } catch {
         setUser(null);
       } finally {
         setLoading(false);
@@ -76,6 +76,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

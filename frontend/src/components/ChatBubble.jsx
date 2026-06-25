@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Bot } from 'lucide-react';
 
 export default function ChatBubble({ message, isUser, children }) {

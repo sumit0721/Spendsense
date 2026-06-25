@@ -26,7 +26,10 @@ export default function SavingsGoals() {
     }
   };
 
-  useEffect(() => { fetchGoals(); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchGoals(); 
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this savings goal? This cannot be undone.')) return;

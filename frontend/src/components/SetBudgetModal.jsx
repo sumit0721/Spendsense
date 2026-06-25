@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, IndianRupee } from 'lucide-react';
 import Button from './Button';
 import { getBudget, setBudget } from '../services/api';

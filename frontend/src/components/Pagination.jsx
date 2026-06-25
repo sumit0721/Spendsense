@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from './Button';
 
@@ -38,7 +38,7 @@ export default function Pagination({ currentPage, page, totalPages, onPageChange
             const showEllipsis = index > 0 && p - array[index - 1] > 1;
             
             return (
-              <React.Fragment key={p}>
+              <Fragment key={p}>
                 {showEllipsis && (
                   <span className="px-xs text-[12px] font-semibold text-secondary">
                     ...
@@ -51,7 +51,7 @@ export default function Pagination({ currentPage, page, totalPages, onPageChange
                 >
                   {p}
                 </Button>
-              </React.Fragment>
+              </Fragment>
             );
           })}
 

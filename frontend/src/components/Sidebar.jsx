@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { LayoutDashboard, Receipt, Sparkles, LogOut, Wallet, Target, Repeat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
