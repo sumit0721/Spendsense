@@ -10,6 +10,8 @@ const authRoutes = require('./routes/authRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const advisorRoutes = require('./routes/advisorRoutes');
+const savingsGoalRoutes = require('./routes/savingsGoalRoutes');
+const recurringRoutes = require('./routes/recurringRoutes');
 
 const app = express();
 
@@ -54,6 +56,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/advisor', advisorRoutes);
+app.use('/api/goals', savingsGoalRoutes);
+app.use('/api/recurring', recurringRoutes);
 
 // --------------- 404 Handler ---------------
 app.all('*', (req, res) => {

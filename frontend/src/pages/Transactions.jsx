@@ -7,7 +7,8 @@ import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import Button from '../components/Button';
 import AddTransactionModal from '../components/AddTransactionModal';
-import { getTransactions } from '../services/api';
+import { getTransactions, exportPDF, exportExcel } from '../services/api';
+import { FileDown } from 'lucide-react';
 
 const CATEGORIES = ['Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel', 'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other'];
 
@@ -105,6 +106,37 @@ export default function Transactions() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const blob = await exportPDF();
+      downloadBlob(blob, 'spendsense-transactions.pdf');
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Failed to export PDF. Please try again.');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const blob = await exportExcel();
+      downloadBlob(blob, 'spendsense-transactions.xlsx');
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      alert('Failed to export Excel. Please try again.');
+    }
+  };
+
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handlePageChange = (newPage) => {
@@ -252,7 +284,13 @@ export default function Transactions() {
             </Button>
             <Button variant="secondary" size="sm" onClick={handleExport}>
               <Download size={16} />
-              Export
+              Export (CSV)
+            </Button>
+            <Button variant="secondary" size="sm" onClick={handleExportPDF}>
+              <FileDown size={16} /> PDF
+            </Button>
+            <Button variant="secondary" size="sm" onClick={handleExportExcel}>
+              <FileDown size={16} /> Excel
             </Button>
           </div>
         </section>

@@ -129,4 +129,27 @@ export const getTransactionStats = async (days = 90) => {
   return response.data;
 };
 
+export const getDashboardSummary = async () => {
+  const res = await api.get('/transactions/summary');
+  return res.data;
+};
+
+export const getGoals = async () => (await api.get('/goals')).data;
+export const createGoal = async (data) => (await api.post('/goals', data)).data;
+export const updateGoalProgress = async (id, amount) => (await api.patch(`/goals/${id}/progress`, { amount })).data;
+export const deleteGoal = async (id) => (await api.delete(`/goals/${id}`)).data;
+
+export const getRecurring = async () => (await api.get('/recurring')).data;
+export const createRecurring = async (data) => (await api.post('/recurring', data)).data;
+export const deleteRecurring = async (id) => (await api.delete(`/recurring/${id}`)).data;
+
+export const exportPDF = async () => {
+  const res = await api.get('/transactions/export/pdf', { responseType: 'blob' });
+  return res.data;
+};
+export const exportExcel = async () => {
+  const res = await api.get('/transactions/export/excel', { responseType: 'blob' });
+  return res.data;
+};
+
 export default api;

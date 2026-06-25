@@ -11,6 +11,8 @@ const app = require('./app');
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/spendsense';
 
+const { startRecurringScheduler } = require('./utils/recurringScheduler');
+
 /**
  * Connect to MongoDB and start the Express server.
  */
@@ -18,6 +20,8 @@ const startServer = async () => {
   try {
     await mongoose.connect(MONGO_URI);
     console.log(`[MongoDB] Connected to database`);
+    
+    startRecurringScheduler();
 
     app.listen(PORT, () => {
       console.log(`[Server] SpendSense API running on port ${PORT}`);

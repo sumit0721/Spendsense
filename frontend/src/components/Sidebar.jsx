@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Receipt, Sparkles, LogOut, Wallet } from 'lucide-react';
+import { LayoutDashboard, Receipt, Sparkles, LogOut, Wallet, Target, Repeat } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -9,6 +9,8 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Transactions', path: '/transactions', icon: Receipt },
+    { name: 'Savings Goals', path: '/goals', icon: Target },
+    { name: 'Recurring', path: '/recurring', icon: Repeat },
     { name: 'AI Advisor', path: '/advisor', icon: Sparkles },
   ];
 

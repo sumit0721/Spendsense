@@ -312,5 +312,25 @@ const getTransactionStats = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getTransactions, createTransaction, getTransactionStats };
+// Add to transactionController.js, export alongside existing functions
+const getDashboardSummary = asyncHandler(async (req, res) => {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+  const totals = await Transaction.aggregate([
+    { $match: { user: req.user._id, date: { $gte: monthStart } } },
+    { $group: { _id: '$type', total: { $sum: '$amount' } } },
+  ]);
+
+  const income = totals.find((t) => t._id === 'income')?.total || 0;
+  const expense = totals.find((t) => t._id === 'expense')?.total || 0;
+
+  res.status(200).json({
+    success: true,
+    income,
+    expense,
+    savings: income - expense,
+  });
+});
+
+module.exports = { getTransactions, createTransaction, getTransactionStats, getDashboardSummary };

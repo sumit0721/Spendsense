@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import AIAdvisor from './pages/AIAdvisor';
 import Profile from './pages/Profile';
+import SavingsGoals from './pages/SavingsGoals';
+import RecurringTransactions from './pages/RecurringTransactions';
 
 /**
  * Protected route wrapper — redirects to /auth if not authenticated.
@@ -52,6 +54,8 @@ export default function App() {
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/advisor" element={<AIAdvisor />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/goals" element={<SavingsGoals />} />
+            <Route path="/recurring" element={<RecurringTransactions />} />
           </Route>
 
           {/* Catch-all */}

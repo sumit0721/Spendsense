@@ -11,7 +11,7 @@ import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import AddTransactionModal from '../components/AddTransactionModal';
 import SetBudgetModal from '../components/SetBudgetModal';
-import { getTransactions, getTransactionStats, getBudgetForecast } from '../services/api';
+import { getTransactions, getTransactionStats, getBudgetForecast, getDashboardSummary } from '../services/api';
 import CategoryPieChart from '../components/CategoryPieChart';
 
 export default function Dashboard() {
@@ -23,18 +23,21 @@ export default function Dashboard() {
   const [error, setError] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [summary, setSummary] = useState(null);
 
   const fetchData = async () => {
       try {
         setError(false);
-        const [transRes, statsRes, forecastRes] = await Promise.all([
+        const [transRes, statsRes, forecastRes, summaryRes] = await Promise.all([
           getTransactions(1, 5),
           getTransactionStats(90),
-          getBudgetForecast()
+          getBudgetForecast(),
+          getDashboardSummary()
         ]);
         setTransactions(transRes.transactions || []);
         setStats(statsRes);
         setForecast(forecastRes);
+        setSummary(summaryRes);
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError(true);
@@ -97,11 +100,32 @@ export default function Dashboard() {
         {loading ? (
           <LoadingState type="cards" />
         ) : (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <MetricCard label="Total Spent" value={`₹${currentMonthTotal.toFixed(2)}`} trend={spendTrend} trendValue={spendTrendValue} icon={<Wallet size={18} />} />
-            <MetricCard label="Budget Remaining" value={totalLimit > 0 ? `₹${Math.max(0, budgetRemaining).toFixed(2)}` : '—'} progress={budgetProgress} progressLabel={budgetProgressLabel} icon={<PieChart size={18} />} />
-            <MetricCard label="Forecasted End-of-Month" value={projectedValue} trend={projectedTrend} trendValue={projectedTrendValue} icon={<TrendingUp size={18} />} />
-          </section>
+          <div className="space-y-6">
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <MetricCard
+                label="Income"
+                value={summary ? `₹${summary.income.toFixed(2)}` : '—'}
+                icon={<TrendingUp size={18} />}
+              />
+              <MetricCard
+                label="Expense"
+                value={summary ? `₹${summary.expense.toFixed(2)}` : '—'}
+                icon={<Wallet size={18} />}
+              />
+              <MetricCard
+                label="Savings"
+                value={summary ? `₹${summary.savings.toFixed(2)}` : '—'}
+                trend={summary?.savings >= 0 ? 'up' : 'down'}
+                trendValue={summary?.savings >= 0 ? 'Positive this month' : 'Spending exceeds income'}
+                icon={<PieChart size={18} />}
+              />
+            </section>
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <MetricCard label="Total Spent" value={`₹${currentMonthTotal.toFixed(2)}`} trend={spendTrend} trendValue={spendTrendValue} icon={<Wallet size={18} />} />
+              <MetricCard label="Budget Remaining" value={totalLimit > 0 ? `₹${Math.max(0, budgetRemaining).toFixed(2)}` : '—'} progress={budgetProgress} progressLabel={budgetProgressLabel} icon={<PieChart size={18} />} />
+              <MetricCard label="Forecasted End-of-Month" value={projectedValue} trend={projectedTrend} trendValue={projectedTrendValue} icon={<TrendingUp size={18} />} />
+            </section>
+          </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
