@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -62,3 +62,19 @@ jobs:
         run: |
           cd backend
           docker build -t spendsense-backend:latest .
+
+  deploy-to-ec2:
+    needs: lint-and-build-backend
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd Spendsense
+            git pull origin main
+            sudo docker compose up --build -d backend
