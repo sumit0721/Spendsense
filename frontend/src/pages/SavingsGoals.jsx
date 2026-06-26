@@ -72,7 +72,7 @@ export default function SavingsGoals() {
     <>
       <TopBar title="Savings Goals" subtitle="Track what you're saving toward">
         <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)}>
-          <Plus size={16} /> New Goal
+          <Plus size={16} /> <span className="hidden sm:inline">New Goal</span>
         </Button>
       </TopBar>
 

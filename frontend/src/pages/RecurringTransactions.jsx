@@ -45,7 +45,7 @@ export default function RecurringTransactions() {
     <>
       <TopBar title="Recurring Transactions" subtitle="Bills that repeat every month">
         <Button variant="primary" size="sm" onClick={() => { setEditingItem(null); setShowModal(true); }}>
-          <Plus size={16} /> Add Recurring
+          <Plus size={16} /> <span className="hidden sm:inline">Add Recurring</span>
         </Button>
       </TopBar>
 

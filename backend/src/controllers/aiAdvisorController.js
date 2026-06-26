@@ -3,6 +3,7 @@ const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
 const SavingsGoal = require('../models/SavingsGoal');
 const RecurringTransaction = require('../models/RecurringTransaction');
+const Chat = require('../models/Chat');
 const { callGeminiWithFallback, getModel } = require('../utils/geminiClient');
 const { EXPENSE_CATEGORIES } = require('../models/Transaction');
 
@@ -181,4 +182,28 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { askAdvisor, getBudgetForecast };
+const getChatHistory = asyncHandler(async (req, res) => {
+  let chat = await Chat.findOne({ user: req.user._id });
+  if (!chat) {
+    chat = await Chat.create({ user: req.user._id, messages: [] });
+  }
+  res.status(200).json({ success: true, messages: chat.messages });
+});
+
+const syncChatHistory = asyncHandler(async (req, res) => {
+  const { messages } = req.body;
+  let chat = await Chat.findOne({ user: req.user._id });
+  if (!chat) {
+    chat = new Chat({ user: req.user._id, messages: [] });
+  }
+  chat.messages = messages;
+  await chat.save();
+  res.status(200).json({ success: true, messages: chat.messages });
+});
+
+const clearChatHistory = asyncHandler(async (req, res) => {
+  await Chat.findOneAndUpdate({ user: req.user._id }, { messages: [] });
+  res.status(200).json({ success: true, messages: [] });
+});
+
+module.exports = { askAdvisor, getBudgetForecast, getChatHistory, syncChatHistory, clearChatHistory };

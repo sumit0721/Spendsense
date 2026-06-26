@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <div className="bg-surface text-on-surface overflow-x-hidden">
       {/* Navigation */}
-      <nav className="bg-surface/95 backdrop-blur-md border-b border-outline-variant sticky top-0 z-50 transition-colors duration-300">
+      <nav className="fixed w-full top-0 z-50 bg-surface-variant/30 dark:bg-dark-surface-variant/30 backdrop-blur-md border-b border-outline-variant transition-colors duration-300">
         <div className="flex justify-between items-center w-full px-4 md:px-10 py-4 max-w-[1280px] mx-auto">
           <div className="flex items-center gap-4 md:gap-8">
             <button 
@@ -48,7 +48,7 @@ export default function Home() {
             <button
               onClick={toggleTheme}
               title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="p-2 hover:bg-surface-container-low border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none hidden sm:flex"
+              className="p-2 hover:bg-surface-container-low border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none flex"
             >
               {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -88,13 +88,6 @@ export default function Home() {
             <div className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-4">
               <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface font-medium py-2 border-b border-outline-variant/50">Features</a>
               <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface font-medium py-2 border-b border-outline-variant/50">How it Works</a>
-              
-              <div className="mt-4 flex items-center justify-between py-2">
-                <span className="text-on-surface font-medium">Theme</span>
-                <button onClick={toggleTheme} className="p-2 bg-surface-container-low rounded-lg text-on-surface-variant">
-                  {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
-                </button>
-              </div>
 
               <div className="mt-auto flex flex-col gap-3 pb-safe">
                 {user ? (
@@ -259,28 +252,28 @@ export default function Home() {
                   <div className="md:w-1/2 w-full">
                     <div className="bg-surface-container-low rounded-xl p-6 space-y-4">
                       <div className="bg-surface-container-lowest p-4 rounded-lg flex justify-between items-center shadow-sm group-hover:-translate-x-2 transition-transform duration-500">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-10 h-10 shrink-0 bg-surface-container-high rounded-full flex items-center justify-center">
                             <ShoppingBag size={18} className="text-on-surface-variant" />
                           </div>
-                          <div>
-                            <div className="text-[14px] font-medium">Campus Bookstore</div>
-                            <div className="text-[12px] text-on-surface-variant">Education • 2h ago</div>
+                          <div className="truncate">
+                            <div className="text-[14px] font-medium truncate">Campus Bookstore</div>
+                            <div className="text-[12px] text-on-surface-variant truncate">Education • 2h ago</div>
                           </div>
                         </div>
-                        <div className="text-[14px] font-medium">-₹84.20</div>
+                        <div className="text-[14px] font-medium shrink-0 ml-2">-₹84.20</div>
                       </div>
                       <div className="bg-surface-container-lowest p-4 rounded-lg flex justify-between items-center shadow-sm opacity-60 group-hover:translate-x-2 transition-transform duration-500">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-10 h-10 shrink-0 bg-surface-container-high rounded-full flex items-center justify-center">
                             <Banknote size={18} className="text-on-surface-variant" />
                           </div>
-                          <div>
-                            <div className="text-[14px] font-medium">Workplace Deposit</div>
-                            <div className="text-[12px] text-on-surface-variant">Income • Yesterday</div>
+                          <div className="truncate">
+                            <div className="text-[14px] font-medium truncate">Workplace Deposit</div>
+                            <div className="text-[12px] text-on-surface-variant truncate">Income • Yesterday</div>
                           </div>
                         </div>
-                        <div className="text-[14px] font-medium text-[#EA580C]">+₹1,250.00</div>
+                        <div className="text-[14px] font-medium text-[#EA580C] shrink-0 ml-2">+₹1,250.00</div>
                       </div>
                     </div>
                   </div>
@@ -344,29 +337,38 @@ export default function Home() {
               Empowering students with AI-driven financial clarity and academic-grade security.
             </p>
             <div className="text-[12px] font-semibold text-on-surface-variant">
-              © 2024 SpendSense. Financial clarity for the next generation.
+              © 2026 SpendSense. Financial clarity for the next generation.
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 gap-8">
             <div>
               <h5 className="text-[14px] font-medium text-on-surface mb-4">Platform</h5>
               <ul className="space-y-3">
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Dashboard</a></li>
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">AI Advisor</a></li>
+                <li><Link to="/dashboard" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Dashboard</Link></li>
+                <li><Link to="/advisor" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">AI Advisor</Link></li>
               </ul>
             </div>
             <div>
-              <h5 className="text-[14px] font-medium text-on-surface mb-4">Company</h5>
+              <h5 className="text-[14px] font-medium text-on-surface mb-4">Connect</h5>
               <ul className="space-y-3">
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Contact</a></li>
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Security</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="text-[14px] font-medium text-on-surface mb-4">Legal</h5>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">Terms of Service</a></li>
+                <li>
+                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    X (Twitter)
+                  </a>
+                </li>
+                <li>
+                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[12px] text-on-surface-variant hover:text-[#EA580C] transition-colors">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    Facebook
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

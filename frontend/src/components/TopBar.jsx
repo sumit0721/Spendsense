@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useLocation, Link, NavLink } from 'react-router-dom';
+import { useLocation, Link, NavLink, useNavigate } from 'react-router-dom';
 import { Calendar, Sun, Moon, Home, Menu, X, LayoutDashboard, Receipt, Target, Repeat, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -10,6 +10,7 @@ export default function TopBar({ title, subtitle, children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   
   const getPageTitle = () => {
@@ -34,7 +35,7 @@ export default function TopBar({ title, subtitle, children }) {
 
   return (
     <>
-    <header className="h-16 border-b border-outline-variant bg-surface-container/95 backdrop-blur-md shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
+    <header className="h-16 border-b border-outline-variant bg-surface-variant/30 dark:bg-dark-surface-variant/30 backdrop-blur-md shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
@@ -47,7 +48,7 @@ export default function TopBar({ title, subtitle, children }) {
             {getPageTitle()}
           </h2>
           {subtitle && (
-            <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px]">
+            <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px] truncate max-w-[150px] md:max-w-none">
               {subtitle}
             </span>
           )}
@@ -90,14 +91,24 @@ export default function TopBar({ title, subtitle, children }) {
         <NotificationPanel />
 
         {/* User Info */}
-        <Link to="/profile" className="flex items-center gap-xs pl-xs border-l border-outline-variant hover:opacity-80 transition-opacity" title="Go to Profile">
+        <button 
+          onClick={() => {
+            if (location.pathname === '/profile') {
+              navigate(-1);
+            } else {
+              navigate('/profile');
+            }
+          }} 
+          className="flex items-center gap-xs pl-xs border-l border-outline-variant hover:opacity-80 transition-opacity focus:outline-none" 
+          title="Toggle Profile"
+        >
           <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[13px] uppercase">
             {user?.name?.slice(0, 1) || 'U'}
           </div>
           <span className="hidden lg:block text-[13px] font-sans font-bold text-on-surface truncate max-w-[120px]">
             {user?.name || 'User'}
           </span>
-        </Link>
+        </button>
       </div>
     </header>
 

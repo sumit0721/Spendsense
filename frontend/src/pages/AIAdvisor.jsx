@@ -3,30 +3,44 @@ import { Send, Mic, Bot, History, Trash2, AlertTriangle } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import ChatBubble, { TypingIndicator } from '../components/ChatBubble';
 import LoadingState from '../components/LoadingState';
-import { askAdvisor } from '../services/api';
+import { askAdvisor, getChatHistory, syncChatHistory, clearChatHistory } from '../services/api';
 
 export default function AIAdvisor() {
-  const [messages, setMessages] = useState(() => {
-    const saved = localStorage.getItem('advisor_chat_history');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse chat history', e);
-      }
-    }
-    return [
-      {
-        id: 1,
-        isUser: false,
-        text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
-      },
-    ];
-  });
-  
+  const [messages, setMessages] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+  const defaultMessage = {
+    id: 'default-1',
+    isUser: false,
+    text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
+  };
+
   useEffect(() => {
-    localStorage.setItem('advisor_chat_history', JSON.stringify(messages));
-  }, [messages]);
+    const fetchHistory = async () => {
+      try {
+        const res = await getChatHistory();
+        if (res.messages && res.messages.length > 0) {
+          setMessages(res.messages);
+        } else {
+          setMessages([defaultMessage]);
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+        setMessages([defaultMessage]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  const syncMessages = async (newMessages) => {
+    try {
+      await syncChatHistory(newMessages);
+    } catch (err) {
+      console.error('Failed to sync chat history', err);
+    }
+  };
 
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -67,14 +81,13 @@ export default function AIAdvisor() {
   const [showHistoryMenu, setShowHistoryMenu] = useState(false);
   const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
 
-  const confirmClearHistory = () => {
-    setMessages([
-      {
-        id: crypto.randomUUID(),
-        isUser: false,
-        text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
-      },
-    ]);
+  const confirmClearHistory = async () => {
+    try {
+      await clearChatHistory();
+      setMessages([defaultMessage]);
+    } catch (err) {
+      console.error('Failed to clear chat history', err);
+    }
     setShowClearConfirmModal(false);
   };
 
@@ -82,31 +95,43 @@ export default function AIAdvisor() {
     if (!input.trim()) return;
 
     const userMessage = { id: crypto.randomUUID(), isUser: true, text: input };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const updated = [...prev, userMessage];
+      syncMessages(updated);
+      return updated;
+    });
     const currentInput = input;
     setInput('');
     setIsTyping(true);
 
     try {
       const res = await askAdvisor(currentInput);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          isUser: false,
-          text: res.answer || "I'm sorry, I couldn't generate a response. Please try again.",
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            isUser: false,
+            text: res.answer || "I'm sorry, I couldn't generate a response. Please try again.",
+          },
+        ];
+        syncMessages(updated);
+        return updated;
+      });
     } catch (err) {
       console.error('Failed to get response from advisor:', err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          isUser: false,
-          text: err.response?.data?.message || 'The AI Advisor endpoint encountered an error. Please verify your connection or Gemini API key settings.',
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            isUser: false,
+            text: err.response?.data?.message || 'The AI Advisor endpoint encountered an error. Please verify your connection or Gemini API key settings.',
+          },
+        ];
+        syncMessages(updated);
+        return updated;
+      });
     } finally {
       setIsTyping(false);
     }
@@ -197,7 +222,9 @@ export default function AIAdvisor() {
             </span>
           </div>
 
-          {messages.length === 0 ? (
+          {isLoadingHistory ? (
+            <LoadingState type="chat" />
+          ) : messages.length === 0 ? (
             <LoadingState type="chat" />
           ) : (
             messages.map((msg) => (

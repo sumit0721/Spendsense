@@ -157,6 +157,10 @@ export const askAdvisor = async (prompt) => {
   return response.data;
 };
 
+export const getChatHistory = async () => (await api.get('/advisor/chat')).data;
+export const syncChatHistory = async (messages) => (await api.put('/advisor/chat', { messages })).data;
+export const clearChatHistory = async () => (await api.delete('/advisor/chat')).data;
+
 export const getTransactionStats = async (days = 90) => {
   const response = await api.get(`/transactions/stats?days=${days}`);
   return response.data;
