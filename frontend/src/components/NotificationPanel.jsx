@@ -100,7 +100,7 @@ export default function NotificationPanel() {
       </div>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow z-50 overflow-hidden">
+        <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-80 bg-surface-container-lowest border border-outline-variant rounded-xl card-shadow z-50 overflow-hidden">
           <div className="p-3 border-b border-outline-variant">
             <h4 className="text-[14px] font-semibold text-on-surface">Notifications</h4>
           </div>

@@ -14,11 +14,11 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 border-r border-outline-variant dark:border-dark-outline-variant h-screen bg-surface-container dark:bg-dark-surface-container flex flex-col justify-between fixed top-0 left-0 hidden md:flex z-20">
+    <aside className="w-64 border-r border-outline-variant/50 h-screen bg-gradient-to-b from-surface-container-lowest to-surface-container-low flex flex-col justify-between fixed top-0 left-0 hidden md:flex z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]">
       <div className="flex flex-col gap-lg p-lg">
         {/* Brand Logo */}
         <NavLink to="/" className="flex items-center gap-xs hover:opacity-80 transition-opacity">
-          <div className="p-xs bg-primary text-on-primary rounded-lg">
+          <div className="p-xs bg-primary text-on-primary rounded-lg shadow-sm">
             <Wallet className="w-5 h-5" />
           </div>
           <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">
@@ -37,8 +37,8 @@ export default function Sidebar() {
                 className={({ isActive }) =>
                   `flex items-center gap-sm px-md py-sm rounded-lg text-[14px] font-medium transition-all ${
                     isActive
-                      ? 'bg-primary/5 text-primary font-bold border border-primary/10'
-                      : 'text-on-surface-variant hover:bg-surface hover:text-primary'
+                      ? 'bg-gradient-to-r from-primary/10 to-transparent text-primary font-bold shadow-sm'
+                      : 'text-on-surface-variant hover:bg-surface-container hover:text-primary hover:shadow-sm'
                   }`
                 }
               >

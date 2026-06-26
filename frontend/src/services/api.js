@@ -10,6 +10,18 @@ const api = axios.create({
   },
 });
 
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const subscribeTokenRefresh = (cb) => {
+  refreshSubscribers.push(cb);
+};
+
+const onRefreshed = () => {
+  refreshSubscribers.forEach((cb) => cb());
+  refreshSubscribers = [];
+};
+
 // Response interceptor for token rotation on 401
 api.interceptors.response.use(
   (response) => response,
@@ -19,6 +31,18 @@ api.interceptors.response.use(
     // Check if error is 401 and request hasn't been retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      if (isRefreshing) {
+        // If already refreshing, wait for it to finish then retry
+        return new Promise((resolve) => {
+          subscribeTokenRefresh(() => {
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+
       try {
         // Attempt to refresh token
         await axios.post(
@@ -26,9 +50,13 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
+        isRefreshing = false;
+        onRefreshed();
         // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
+        isRefreshing = false;
+        refreshSubscribers = [];
         // If refresh fails, log out user (handled at application layer or by redirect)
         return Promise.reject(refreshError);
       }

@@ -1,10 +1,13 @@
 
-import { useLocation, Link } from 'react-router-dom';
-import { Calendar, Sun, Moon, Home } from 'lucide-react';
+import { useState } from 'react';
+import { useLocation, Link, NavLink } from 'react-router-dom';
+import { Calendar, Sun, Moon, Home, Menu, X, LayoutDashboard, Receipt, Target, Repeat, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import NotificationPanel from './NotificationPanel';
+
 export default function TopBar({ title, subtitle, children }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
@@ -30,11 +33,19 @@ export default function TopBar({ title, subtitle, children }) {
   });
 
   return (
-    <header className="h-16 border-b border-outline-variant dark:border-dark-outline-variant bg-surface-container-lowest/95 backdrop-blur px-md md:px-lg flex items-center justify-between sticky top-0 z-10 w-full shrink-0">
-      <div className="flex flex-col">
-        <h2 className="text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-none m-0">
-          {getPageTitle()}
-        </h2>
+    <>
+    <header className="h-16 border-b border-outline-variant bg-surface-container/95 backdrop-blur-md shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="md:hidden p-2 -ml-2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex flex-col">
+          <h2 className="text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-none m-0">
+            {getPageTitle()}
+          </h2>
         {subtitle && (
           <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px]">
             {subtitle}
@@ -88,5 +99,59 @@ export default function TopBar({ title, subtitle, children }) {
         </Link>
       </div>
     </header>
+
+    {/* Mobile Navigation Drawer */}
+    {isMobileMenuOpen && (
+      <div className="fixed inset-0 z-50 flex md:hidden">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        
+        {/* Drawer */}
+        <div className="relative w-64 max-w-[80%] bg-surface-container h-full flex flex-col shadow-2xl animate-slide-in">
+          <div className="flex items-center justify-between p-4 border-b border-outline-variant">
+            <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">SpendSense</span>
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-2">
+            {[
+              { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+              { name: 'Transactions', path: '/transactions', icon: Receipt },
+              { name: 'Savings Goals', path: '/goals', icon: Target },
+              { name: 'Recurring', path: '/recurring', icon: Repeat },
+              { name: 'AI Advisor', path: '/advisor', icon: Sparkles },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-3 rounded-xl text-[15px] font-medium transition-all ${
+                      isActive
+                        ? 'bg-primary text-on-primary font-bold shadow-md'
+                        : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
+                    }`
+                  }
+                >
+                  <Icon className="w-5 h-5" />
+                  {item.name}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

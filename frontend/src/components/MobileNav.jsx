@@ -1,15 +1,17 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Receipt, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Receipt, Sparkles, Target, Repeat } from 'lucide-react';
 
 export default function MobileNav() {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Transactions', path: '/transactions', icon: Receipt },
-    { name: 'AI Advisor', path: '/advisor', icon: Sparkles },
+    { name: 'Goals', path: '/goals', icon: Target },
+    { name: 'Recurring', path: '/recurring', icon: Repeat },
+    { name: 'AI', path: '/advisor', icon: Sparkles },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-outline-variant dark:border-dark-outline-variant bg-surface-container/95 dark:bg-dark-surface-container/95 backdrop-blur flex items-center justify-around md:hidden z-20 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-outline-variant bg-surface-container-low/95 backdrop-blur-md shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex items-center justify-around md:hidden z-30 pb-safe">
       {navItems.map((item) => {
         const Icon = item.icon;
         return (

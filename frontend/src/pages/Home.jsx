@@ -1,10 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Sparkles, CheckCircle, ShoppingBag, Banknote, Brain } from 'lucide-react';
+import { AlertTriangle, Sparkles, CheckCircle, ShoppingBag, Banknote, Brain, Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Home() {
   const { user } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // Scroll reveal on mount
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -26,26 +29,40 @@ export default function Home() {
   return (
     <div className="bg-surface text-on-surface overflow-x-hidden">
       {/* Navigation */}
-      <nav className="bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 z-50">
-        <div className="flex justify-between items-center w-full px-10 py-4 max-w-[1280px] mx-auto">
-          <div className="flex items-center gap-8">
-            <span className="text-[24px] font-bold text-on-surface cursor-pointer">SpendSense</span>
+      <nav className="bg-surface/95 backdrop-blur-md border-b border-outline-variant sticky top-0 z-50 transition-colors duration-300">
+        <div className="flex justify-between items-center w-full px-4 md:px-10 py-4 max-w-[1280px] mx-auto">
+          <div className="flex items-center gap-4 md:gap-8">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <span className="text-[20px] md:text-[24px] font-bold text-on-surface cursor-pointer tracking-tight">SpendSense</span>
             <div className="hidden md:flex gap-6 items-center">
               <a href="#features" className="text-on-surface-variant text-[14px] font-medium hover:text-on-surface transition-colors">Features</a>
               <a href="#how-it-works" className="text-on-surface-variant text-[14px] font-medium hover:text-on-surface transition-colors">How it Works</a>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button
+              onClick={toggleTheme}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 hover:bg-surface-container-low border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none hidden sm:flex"
+            >
+              {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
+            </button>
+
             {user ? (
-              <Link to="/dashboard" className="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
+              <Link to="/dashboard" className="hidden sm:inline-flex bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
                 Go to Dashboard
               </Link>
             ) : (
               <>
-                <Link to="/auth" className="text-on-surface-variant text-[14px] font-medium px-4 py-2 hover:bg-surface-container-low rounded-lg transition-all">
+                <Link to="/auth" className="hidden sm:block text-on-surface-variant text-[14px] font-medium px-4 py-2 hover:bg-surface-container-low rounded-lg transition-all">
                   Login
                 </Link>
-                <Link to="/auth" className="bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:bg-black transition-all active:scale-95">
+                <Link to="/auth" className="hidden sm:inline-flex bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:opacity-90 transition-all active:scale-95 shadow-sm">
                   Get Started
                 </Link>
               </>
@@ -53,6 +70,52 @@ export default function Home() {
           </div>
         </div>
       </nav>
+
+      {/* Mobile Navigation Drawer for Landing Page */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] flex md:hidden">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="relative w-64 max-w-[80%] bg-surface h-full flex flex-col shadow-2xl animate-slide-in">
+            <div className="flex items-center justify-between p-4 border-b border-outline-variant">
+              <span className="text-[18px] font-bold text-primary tracking-tight">SpendSense</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-4">
+              <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface font-medium py-2 border-b border-outline-variant/50">Features</a>
+              <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface font-medium py-2 border-b border-outline-variant/50">How it Works</a>
+              
+              <div className="mt-4 flex items-center justify-between py-2">
+                <span className="text-on-surface font-medium">Theme</span>
+                <button onClick={toggleTheme} className="p-2 bg-surface-container-low rounded-lg text-on-surface-variant">
+                  {isDark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <div className="mt-auto flex flex-col gap-3 pb-safe">
+                {user ? (
+                  <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="bg-primary text-on-primary text-center px-4 py-3 rounded-xl font-medium shadow-sm">
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="bg-surface-container-low text-on-surface text-center px-4 py-3 rounded-xl font-medium">
+                      Login
+                    </Link>
+                    <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="bg-primary text-on-primary text-center px-4 py-3 rounded-xl font-medium shadow-sm">
+                      Get Started Free
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main>
         {/* Hero Section */}
@@ -157,18 +220,18 @@ export default function Home() {
 
               {/* AI Advisor */}
               <div className="md:col-span-5 reveal opacity-0 translate-y-8 transition-all duration-700" style={{ transitionDelay: '100ms' }}>
-                <div className="bg-primary-container p-10 rounded-2xl h-full flex flex-col justify-between overflow-hidden relative group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
+                <div className="bg-[#0f172a] p-10 rounded-2xl h-full flex flex-col justify-between overflow-hidden relative group hover:-translate-y-2 hover:shadow-xl transition-all duration-300">
                   <div className="relative z-10">
                     <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform">
-                      <Sparkles size={24} className="text-on-primary" />
+                      <Sparkles size={24} className="text-white" />
                     </div>
-                    <h3 className="text-[24px] font-semibold text-on-primary mb-4">Data-Driven AI Advisor</h3>
-                    <p className="text-[16px] text-on-primary-container">
+                    <h3 className="text-[24px] font-semibold text-white mb-4">Data-Driven AI Advisor</h3>
+                    <p className="text-[16px] text-white/80">
                       Receive personalized financial strategies based on your unique spending habits and academic goals.
                     </p>
                   </div>
                   <div className="mt-8 relative z-10">
-                    <div className="bg-surface-container-lowest/5 border border-white/10 rounded-lg p-4 text-[12px] font-semibold text-on-primary/80 italic group-hover:bg-white/10 transition-colors">
+                    <div className="bg-white/10 border border-white/20 rounded-lg p-4 text-[13px] font-medium text-white italic group-hover:bg-white/20 transition-colors">
                       "Based on your recent cafe visits, you could save ₹45/mo by switching to a prepaid campus meal plan."
                     </div>
                   </div>
@@ -263,7 +326,7 @@ export default function Home() {
               </p>
               <Link
                 to={user ? "/dashboard" : "/auth"}
-                className="inline-block bg-white text-on-surface px-10 py-4 rounded-xl text-[14px] font-medium hover:bg-surface-container-low transition-all active:scale-95"
+                className="inline-block bg-on-primary text-primary px-10 py-4 rounded-xl text-[14px] font-bold hover:opacity-90 transition-all active:scale-95 shadow-md"
               >
                 {user ? 'Go to Dashboard' : 'Get Started Free'}
               </Link>

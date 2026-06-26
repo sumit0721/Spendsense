@@ -30,6 +30,39 @@ export default function AIAdvisor() {
 
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support Speech Recognition.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(prev => prev + (prev ? " " : "") + transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
 
   const [showHistoryMenu, setShowHistoryMenu] = useState(false);
   const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
@@ -98,7 +131,7 @@ export default function AIAdvisor() {
           </button>
           
           {showHistoryMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
+            <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50 animate-fade-in">
               <div className="p-3 border-b border-outline-variant bg-surface-container-low">
                 <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Conversation History</p>
               </div>
@@ -218,7 +251,15 @@ export default function AIAdvisor() {
               <Send size={18} />
             </button>
           </div>
-          <button className="p-3 bg-surface-container-lowest border border-outline-variant rounded-xl text-primary hover:bg-surface-container-low transition-colors">
+          <button 
+            onClick={startListening}
+            className={`p-3 border border-outline-variant rounded-xl transition-colors ${
+              isListening 
+                ? 'bg-primary text-on-primary animate-pulse' 
+                : 'bg-surface-container-lowest text-primary hover:bg-surface-container-low'
+            }`}
+            title={isListening ? "Listening..." : "Start voice dictation"}
+          >
             <Mic size={20} />
           </button>
         </div>
