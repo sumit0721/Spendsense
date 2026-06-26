@@ -46,11 +46,12 @@ export default function TopBar({ title, subtitle, children }) {
           <h2 className="text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-none m-0">
             {getPageTitle()}
           </h2>
-        {subtitle && (
-          <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px]">
-            {subtitle}
-          </span>
-        )}
+          {subtitle && (
+            <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px]">
+              {subtitle}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Dynamic children (e.g. search bars, history controls) */}
