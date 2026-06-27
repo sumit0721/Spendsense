@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <div className="bg-surface text-on-surface overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed w-full top-0 z-50 bg-surface-variant/30 dark:bg-dark-surface-variant/30 backdrop-blur-md border-b border-outline-variant transition-colors duration-300">
+      <nav className="fixed w-full top-0 z-50 bg-surface shadow-sm border-b border-outline-variant transition-colors duration-300">
         <div className="flex justify-between items-center w-full px-4 md:px-10 py-4 max-w-[1280px] mx-auto">
           <div className="flex items-center gap-4 md:gap-8">
             <button 
@@ -205,8 +205,8 @@ export default function Home() {
                   <p className="text-[16px] text-on-surface-variant mb-8">
                     Our neural network scans every transaction in real-time, instantly identifying suspicious activities or unexpected spikes in your monthly subscriptions.
                   </p>
-                  <div className="bg-surface-container-low rounded-xl p-6 h-32 flex items-center justify-center text-on-surface-variant">
-                    <span className="text-[14px]">📊 Anomaly detection visualization</span>
+                  <div className="bg-surface-container-low rounded-xl p-6 h-48 flex items-center justify-center text-on-surface-variant overflow-hidden">
+                    <img src="/anomaly_detection.png" alt="Anomaly detection visualization" className="w-full h-full object-cover rounded-lg shadow-md" />
                   </div>
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function Home() {
                   <div className="md:w-1/2">
                     <h3 className="text-[24px] font-semibold mb-4 text-on-surface">Simplified Transactions</h3>
                     <p className="text-[16px] text-on-surface-variant mb-6">
-                      Connect all your bank accounts, credit cards, and digital wallets into a single, unified view.
+                      Log your expenses manually or extract transaction details instantly from your receipts.
                     </p>
                     <ul className="space-y-3">
                       <li className="flex items-center gap-3 text-[14px] font-medium text-on-surface">
@@ -293,7 +293,7 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-12 relative">
               <div className="hidden md:block absolute top-1/2 left-0 w-full h-[1px] bg-outline-variant -z-10 -translate-y-1/2" />
               {[
-                { num: '1', title: 'Connect Securely', desc: 'Link your accounts with read-only access using bank-level security protocols.' },
+                { num: '1', title: 'Record Easily', desc: 'Log your expenses manually or upload receipts for instant transaction extraction.' },
                 { num: '2', title: 'Analyze Trends', desc: 'Our AI processes your data to find hidden leaks and optimizing opportunities.' },
                 { num: '3', title: 'Master Your Money', desc: "Execute on your AI advisor's recommendations and watch your net worth grow." },
               ].map(({ num, title, desc }, i) => (

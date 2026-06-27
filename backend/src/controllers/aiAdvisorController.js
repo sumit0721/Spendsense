@@ -4,7 +4,7 @@ const Budget = require('../models/Budget');
 const SavingsGoal = require('../models/SavingsGoal');
 const RecurringTransaction = require('../models/RecurringTransaction');
 const Chat = require('../models/Chat');
-const { callGeminiWithFallback, getModel } = require('../utils/geminiClient');
+const { callGeminiWithFallback } = require('../utils/geminiClient');
 const { EXPENSE_CATEGORIES } = require('../models/Transaction');
 
 const askAdvisor = asyncHandler(async (req, res) => {

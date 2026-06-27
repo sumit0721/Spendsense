@@ -1,19 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Mic, Bot, History, Trash2, AlertTriangle } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import ChatBubble, { TypingIndicator } from '../components/ChatBubble';
 import LoadingState from '../components/LoadingState';
 import { askAdvisor, getChatHistory, syncChatHistory, clearChatHistory } from '../services/api';
 
+const defaultMessage = {
+  id: 'default-1',
+  isUser: false,
+  text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
+};
+
 export default function AIAdvisor() {
   const [messages, setMessages] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const messagesEndRef = useRef(null);
 
-  const defaultMessage = {
-    id: 'default-1',
-    isUser: false,
-    text: "Hello! I am your SpendSense AI Advisor. Ask me anything about your transaction history, category breakdowns, or budget status, and I will help you analyze it.",
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping, isLoadingHistory]);
+
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -257,6 +267,7 @@ export default function AIAdvisor() {
           )}
 
           {isTyping && <TypingIndicator />}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 

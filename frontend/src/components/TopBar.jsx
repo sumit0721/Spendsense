@@ -35,7 +35,7 @@ export default function TopBar({ title, subtitle, children }) {
 
   return (
     <>
-    <header className="h-16 border-b border-outline-variant bg-surface-variant/30 dark:bg-dark-surface-variant/30 backdrop-blur-md shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
+    <header className="h-16 border-b border-outline-variant bg-surface shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}

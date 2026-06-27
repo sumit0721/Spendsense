@@ -28,7 +28,6 @@ async function callWithRetry(model, promptFn, retries = 2) {
 }
 
 async function callGeminiWithFallback(promptFn) {
-  let lastError = null;
 
   for (const modelName of MODEL_CASCADE) {
     try {
@@ -48,7 +47,6 @@ async function callGeminiWithFallback(promptFn) {
       // for "model not found" — the model-name swap alone doesn't cover it.
       if (status === 429 || status === 503 || status === 404) {
         console.warn(`[Gemini] ${modelName} returned ${status}, moving to next model...`);
-        lastError = error;
         continue;
       }
 
