@@ -158,147 +158,57 @@ const deleteTransaction = asyncHandler(async (req, res) => {
 });
 
 const getTransactionStats = asyncHandler(async (req, res) => {
-  const days = Math.max(1, parseInt(req.query.days, 10) || 90);
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-
-  // Time boundaries for Month-over-Month comparisons
   const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  
-  // Previous month boundary logic
-  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-  
-  // Robust month-to-date calculation to avoid calendar mismatch (e.g., comparing 23 days of current month to 31 of previous)
-  const daysInPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
-  const prevMonthDay = Math.min(now.getDate(), daysInPrevMonth);
+  const month = parseInt(req.query.month, 10) || (now.getMonth() + 1);
+  const year = parseInt(req.query.year, 10) || now.getFullYear();
+
+  // `target` replaces every bare `now` reference below — this is the
+  // ONLY change. All existing MoM / category / merchant logic is
+  // identical, just computed relative to the selected month instead of
+  // always relative to today.
+  const target = new Date(year, month - 1, 1);
+  const targetMonthStart = new Date(target.getFullYear(), target.getMonth(), 1);
+  const targetMonthEnd = new Date(target.getFullYear(), target.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const prevMonthStart = new Date(target.getFullYear(), target.getMonth() - 1, 1);
+  const prevMonthEnd = new Date(target.getFullYear(), target.getMonth(), 0, 23, 59, 59, 999);
+
+  const daysInPrevMonth = new Date(target.getFullYear(), target.getMonth(), 0).getDate();
+  // For a PAST month, "day of month" comparison should use the full
+  // previous month, not a relative day-count — relative MoM only makes
+  // sense for the CURRENT, in-progress month.
+  const isCurrentMonth = target.getFullYear() === now.getFullYear() && target.getMonth() === now.getMonth();
+  const comparisonDay = isCurrentMonth ? now.getDate() : daysInPrevMonth;
+  const prevMonthDay = Math.min(comparisonDay, daysInPrevMonth);
   const prevMonthEndRelative = new Date(
-    now.getFullYear(),
-    now.getMonth() - 1,
-    prevMonthDay,
-    now.getHours(),
-    now.getMinutes(),
-    now.getSeconds(),
-    now.getMilliseconds()
+    target.getFullYear(), target.getMonth() - 1, prevMonthDay, 23, 59, 59, 999
   );
 
-  // Run aggregation pipelines in parallel
-  const [
-    categoryTotals,
-    topMerchants,
-    currentMonthSpendData,
-    prevMonthSpendData,
-    prevMonthFullSpendData
-  ] = await Promise.all([
-    // 1. Category Totals for requested timeframe
+  const [categoryTotals, topMerchants, currentMonthSpendData, prevMonthSpendData, prevMonthFullSpendData] = await Promise.all([
     Transaction.aggregate([
-      {
-        $match: {
-          user: req.user._id,
-          date: { $gte: startDate },
-          type: { $ne: 'income' }
-        }
-      },
-      {
-        $group: {
-          _id: '$category',
-          total: { $sum: '$amount' }
-        }
-      },
-      {
-        $project: {
-          category: '$_id',
-          total: { $round: ['$total', 2] },
-          _id: 0
-        }
-      },
-      {
-        $sort: { total: -1 }
-      }
+      { $match: { user: req.user._id, date: { $gte: targetMonthStart, $lte: targetMonthEnd }, type: { $ne: 'income' } } },
+      { $group: { _id: '$category', total: { $sum: '$amount' } } },
+      { $project: { category: '$_id', total: { $round: ['$total', 2] }, _id: 0 } },
+      { $sort: { total: -1 } }
     ]),
-
-    // 2. Top Merchants for requested timeframe
     Transaction.aggregate([
-      {
-        $match: {
-          user: req.user._id,
-          date: { $gte: startDate },
-          type: { $ne: 'income' }
-        }
-      },
-      {
-        $group: {
-          _id: '$merchant',
-          total: { $sum: '$amount' },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $project: {
-          merchant: '$_id',
-          total: { $round: ['$total', 2] },
-          count: 1,
-          _id: 0
-        }
-      },
-      {
-        $sort: { total: -1 }
-      },
-      {
-        $limit: 5
-      }
+      { $match: { user: req.user._id, date: { $gte: targetMonthStart, $lte: targetMonthEnd }, type: { $ne: 'income' } } },
+      { $group: { _id: '$merchant', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $project: { merchant: '$_id', total: { $round: ['$total', 2] }, count: 1, _id: 0 } },
+      { $sort: { total: -1 } },
+      { $limit: 5 }
     ]),
-
-    // 3. Current Month Total Spend
     Transaction.aggregate([
-      {
-        $match: {
-          user: req.user._id,
-          date: { $gte: currentMonthStart },
-          type: { $ne: 'income' }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$amount' }
-        }
-      }
+      { $match: { user: req.user._id, date: { $gte: targetMonthStart, $lte: targetMonthEnd }, type: { $ne: 'income' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
     ]),
-
-    // 4. Previous Month (Month-To-Date relative) Spend
     Transaction.aggregate([
-      {
-        $match: {
-          user: req.user._id,
-          date: { $gte: prevMonthStart, $lte: prevMonthEndRelative },
-          type: { $ne: 'income' }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$amount' }
-        }
-      }
+      { $match: { user: req.user._id, date: { $gte: prevMonthStart, $lte: prevMonthEndRelative }, type: { $ne: 'income' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
     ]),
-
-    // 5. Previous Month Full Spend
     Transaction.aggregate([
-      {
-        $match: {
-          user: req.user._id,
-          date: { $gte: prevMonthStart, $lte: prevMonthEnd },
-          type: { $ne: 'income' }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$amount' }
-        }
-      }
+      { $match: { user: req.user._id, date: { $gte: prevMonthStart, $lte: prevMonthEnd }, type: { $ne: 'income' } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
     ])
   ]);
 
@@ -306,7 +216,6 @@ const getTransactionStats = asyncHandler(async (req, res) => {
   const prevMonthTotalRelative = prevMonthSpendData[0]?.total || 0;
   const prevMonthTotalFull = prevMonthFullSpendData[0]?.total || 0;
 
-  // Calculate Month-over-Month delta percentage
   let momDeltaPercentage = 0;
   if (prevMonthTotalRelative > 0) {
     momDeltaPercentage = ((currentMonthTotal - prevMonthTotalRelative) / prevMonthTotalRelative) * 100;
@@ -316,7 +225,8 @@ const getTransactionStats = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    timeframeDays: days,
+    month,
+    year,
     categoryTotals,
     topMerchants,
     monthlyComparison: {
@@ -331,22 +241,32 @@ const getTransactionStats = asyncHandler(async (req, res) => {
 // Add to transactionController.js, export alongside existing functions
 const getDashboardSummary = asyncHandler(async (req, res) => {
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const month = parseInt(req.query.month, 10) || (now.getMonth() + 1); // 1-indexed
+  const year = parseInt(req.query.year, 10) || now.getFullYear();
+
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
 
   const totals = await Transaction.aggregate([
-    { $match: { user: req.user._id, date: { $gte: monthStart } } },
+    { $match: { user: req.user._id, date: { $gte: monthStart, $lte: monthEnd } } },
     { $group: { _id: '$type', total: { $sum: '$amount' } } },
   ]);
 
   const income = totals.find((t) => t._id === 'income')?.total || 0;
-  // Sum up everything that is NOT income as an expense
   const expense = totals.filter((t) => t._id !== 'income').reduce((acc, t) => acc + t.total, 0);
+
+  // Tells the frontend whether this month has any data at all, so it can
+  // show an empty state instead of a misleading "₹0 everything" dashboard.
+  const hasData = totals.length > 0;
 
   res.status(200).json({
     success: true,
+    month,
+    year,
     income,
     expense,
     savings: income - expense,
+    hasData,
   });
 });
 

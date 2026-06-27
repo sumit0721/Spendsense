@@ -19,24 +19,36 @@ const askAdvisor = asyncHandler(async (req, res) => {
     });
   }
 
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const month = parseInt(req.body.month, 10) || null;
+  const year = parseInt(req.body.year, 10) || null;
+
+  let contextStart, contextEnd, contextLabel;
+  if (month && year) {
+    contextStart = new Date(year, month - 1, 1);
+    contextEnd = new Date(year, month, 0, 23, 59, 59, 999);
+    contextLabel = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month - 1]} ${year}`;
+  } else {
+    contextStart = new Date();
+    contextStart.setDate(contextStart.getDate() - 90);
+    contextEnd = new Date();
+    contextLabel = 'Last 90 days';
+  }
 
   const [categoryTotals, recentAnomalies, recentTransactions, goals, recurring, dashboardSummary] = await Promise.all([
     Transaction.aggregate([
-      { $match: { user: req.user._id, date: { $gte: ninetyDaysAgo } } },
+      { $match: { user: req.user._id, date: { $gte: contextStart, $lte: contextEnd } } },
       { $group: { _id: '$category', total: { $sum: '$amount' } } },
       { $project: { category: '$_id', total: { $round: ['$total', 2] }, _id: 0 } },
       { $sort: { total: -1 } }
     ]),
-    Transaction.find({ user: req.user._id, isAnomaly: true, date: { $gte: ninetyDaysAgo } })
+    Transaction.find({ user: req.user._id, isAnomaly: true, date: { $gte: contextStart, $lte: contextEnd } })
       .sort({ date: -1 }).limit(10).select('merchant amount category date notes').lean(),
-    Transaction.find({ user: req.user._id })
+    Transaction.find({ user: req.user._id, date: { $gte: contextStart, $lte: contextEnd } })
       .sort({ date: -1 }).limit(15).select('merchant amount category date notes isAnomaly type').lean(),
     SavingsGoal.find({ user: req.user._id, isCompleted: false }).lean(),
     RecurringTransaction.find({ user: req.user._id, isActive: true }).lean(),
     Transaction.aggregate([
-      { $match: { user: req.user._id, date: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } } },
+      { $match: { user: req.user._id, date: { $gte: contextStart, $lte: contextEnd } } },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },
     ])
   ]);
@@ -45,7 +57,7 @@ const askAdvisor = asyncHandler(async (req, res) => {
   const expense = dashboardSummary.find(d => d._id === 'expense')?.total || 0;
 
   const contextData = {
-    timeframe: 'Last 90 days',
+    timeframe: contextLabel,
     currency: 'INR',
     categoryTotals,
     flaggedAnomalies: recentAnomalies.map(t => ({
@@ -100,55 +112,62 @@ ${JSON.stringify(contextData, null, 2)}
 
 const getBudgetForecast = asyncHandler(async (req, res) => {
   const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  const month = parseInt(req.query.month, 10) || (now.getMonth() + 1);
+  const year = parseInt(req.query.year, 10) || now.getFullYear();
+
+  const isCurrentMonth = month === (now.getMonth() + 1) && year === now.getFullYear();
+  const isFutureMonth = new Date(year, month - 1, 1) > new Date(now.getFullYear(), now.getMonth(), 1);
 
   const budget = await Budget.findOne({ user: req.user._id, month, year });
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const transactions = await Transaction.find({ user: req.user._id, date: { $gte: currentMonthStart } }).lean();
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+  const transactions = await Transaction.find({ user: req.user._id, date: { $gte: monthStart, $lte: monthEnd } }).lean();
 
-  const currentDay = now.getDate();
-  const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const currentDay = isCurrentMonth ? now.getDate() : new Date(year, month, 0).getDate(); // full month if past
+  const totalDaysInMonth = new Date(year, month, 0).getDate();
 
   const categoryForecasts = {};
   for (const cat of EXPENSE_CATEGORIES) {
-    categoryForecasts[cat] = {
-      currentSpend: 0, limit: budget?.categoryLimits?.get(cat) || 0,
-      projectedSpend: 0, velocity: 0, status: 'under'
-    };
+    categoryForecasts[cat] = { currentSpend: 0, limit: budget?.categoryLimits?.get(cat) || 0, projectedSpend: 0, velocity: 0, status: 'under' };
   }
 
   for (const t of transactions) {
-    if (categoryForecasts[t.category]) {
-      categoryForecasts[t.category].currentSpend += t.amount;
-    }
+    if (categoryForecasts[t.category]) categoryForecasts[t.category].currentSpend += t.amount;
   }
 
-  if (currentDay < 3) {
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-    const daysInPrevMonth = prevMonthEnd.getDate();
-    const prevTransactions = await Transaction.find({
-      user: req.user._id, date: { $gte: prevMonthStart, $lte: prevMonthEnd }
-    }).lean();
-    const prevSpend = {};
-    for (const t of prevTransactions) {
-      prevSpend[t.category] = (prevSpend[t.category] || 0) + t.amount;
-    }
-    for (const cat of EXPENSE_CATEGORIES) {
-      const catPrevTotal = prevSpend[cat] || 0;
-      const velocity = catPrevTotal / daysInPrevMonth;
-      const stats = categoryForecasts[cat];
-      stats.velocity = Math.round(velocity * 100) / 100;
-      const remainingDays = totalDaysInMonth - currentDay;
-      stats.projectedSpend = Math.round((stats.currentSpend + (velocity * remainingDays)) * 100) / 100;
+  if (isFutureMonth) {
+    // A future month has zero actuals and no velocity to project from —
+    // nothing meaningful to forecast yet.
+    for (const cat of EXPENSE_CATEGORIES) categoryForecasts[cat].status = 'no-data';
+  } else if (isCurrentMonth) {
+    // Existing forecast logic — UNCHANGED — only runs for the real current month.
+    if (currentDay < 3) {
+      const prevMonthStart = new Date(year, month - 2, 1);
+      const prevMonthEnd = new Date(year, month - 1, 0, 23, 59, 59, 999);
+      const daysInPrevMonth = prevMonthEnd.getDate();
+      const prevTransactions = await Transaction.find({ user: req.user._id, date: { $gte: prevMonthStart, $lte: prevMonthEnd } }).lean();
+      const prevSpend = {};
+      for (const t of prevTransactions) prevSpend[t.category] = (prevSpend[t.category] || 0) + t.amount;
+      for (const cat of EXPENSE_CATEGORIES) {
+        const velocity = (prevSpend[cat] || 0) / daysInPrevMonth;
+        const stats = categoryForecasts[cat];
+        stats.velocity = Math.round(velocity * 100) / 100;
+        const remainingDays = totalDaysInMonth - currentDay;
+        stats.projectedSpend = Math.round((stats.currentSpend + (velocity * remainingDays)) * 100) / 100;
+      }
+    } else {
+      for (const cat of EXPENSE_CATEGORIES) {
+        const stats = categoryForecasts[cat];
+        const velocity = stats.currentSpend / currentDay;
+        stats.velocity = Math.round(velocity * 100) / 100;
+        stats.projectedSpend = Math.round((velocity * totalDaysInMonth) * 100) / 100;
+      }
     }
   } else {
+    // PAST month: no projection needed — actuals ARE the final number.
+    // projectedSpend = currentSpend, since the month is already over.
     for (const cat of EXPENSE_CATEGORIES) {
-      const stats = categoryForecasts[cat];
-      const velocity = stats.currentSpend / currentDay;
-      stats.velocity = Math.round(velocity * 100) / 100;
-      stats.projectedSpend = Math.round((velocity * totalDaysInMonth) * 100) / 100;
+      categoryForecasts[cat].projectedSpend = categoryForecasts[cat].currentSpend;
     }
   }
 
@@ -156,29 +175,37 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
   for (const cat of EXPENSE_CATEGORIES) {
     const stats = categoryForecasts[cat];
     stats.currentSpend = Math.round(stats.currentSpend * 100) / 100;
-    if (stats.limit > 0) {
+    if (stats.limit > 0 && stats.status !== 'no-data') {
       if (stats.projectedSpend > stats.limit) {
-        stats.status = 'over';
-        overBudgetWarnings.push(`${cat} (Spent: ₹${stats.currentSpend}, Projected: ₹${stats.projectedSpend}, Limit: ₹${stats.limit})`);
-      } else if (stats.projectedSpend > stats.limit * 0.8) {
+        stats.status = isCurrentMonth ? 'over' : 'exceeded';
+        overBudgetWarnings.push(`${cat} (Spent: ₹${stats.currentSpend}, Limit: ₹${stats.limit})`);
+      } else if (isCurrentMonth && stats.projectedSpend > stats.limit * 0.8) {
         stats.status = 'warning';
       }
     }
   }
 
-  let advisorySentence = 'Your spending velocity is looking great! All categories are currently projected to stay within budget limits.';
-
-  if (overBudgetWarnings.length > 0) {
-    advisorySentence = `You are projected to exceed your budget limit in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}. Try trimming discretionary costs.`;
+  let advisorySentence;
+  if (isFutureMonth) {
+    advisorySentence = 'This month is in the future — no spending data yet.';
+  } else if (isCurrentMonth) {
+    advisorySentence = overBudgetWarnings.length > 0
+      ? `You are projected to exceed your budget limit in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}. Try trimming discretionary costs.`
+      : 'Your spending velocity is looking great! All categories are currently projected to stay within budget limits.';
+  } else {
+    advisorySentence = overBudgetWarnings.length > 0
+      ? `This month, you exceeded your budget in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}.`
+      : 'This month is complete — you stayed within budget in every category.';
   }
 
-  const forecastsList = Object.keys(categoryForecasts).map(cat => ({
-    category: cat, ...categoryForecasts[cat]
-  })).filter(f => f.limit > 0 || f.currentSpend > 0);
+  const forecastsList = Object.keys(categoryForecasts).map(cat => ({ category: cat, ...categoryForecasts[cat] }))
+    .filter(f => f.limit > 0 || f.currentSpend > 0);
 
   res.status(200).json({
-    success: true, month, year, daysElapsed: currentDay,
-    totalDays: totalDaysInMonth, forecasts: forecastsList, advisorySentence
+    success: true, month, year, daysElapsed: currentDay, totalDays: totalDaysInMonth,
+    forecasts: forecastsList, advisorySentence,
+    isPastMonth: !isCurrentMonth && !isFutureMonth,
+    isFutureMonth,
   });
 });
 

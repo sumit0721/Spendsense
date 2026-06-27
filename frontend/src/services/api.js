@@ -134,8 +134,11 @@ export const deleteTransaction = async (id) => {
   return response.data;
 };
 
-export const getBudgetForecast = async () => {
-  const response = await api.get('/budgets/forecast');
+export const getBudgetForecast = async (month, year) => {
+  const params = {};
+  if (month) params.month = month;
+  if (year) params.year = year;
+  const response = await api.get('/budgets/forecast', { params });
   return response.data;
 };
 
@@ -161,13 +164,19 @@ export const getChatHistory = async () => (await api.get('/advisor/chat')).data;
 export const syncChatHistory = async (messages) => (await api.put('/advisor/chat', { messages })).data;
 export const clearChatHistory = async () => (await api.delete('/advisor/chat')).data;
 
-export const getTransactionStats = async (days = 90) => {
-  const response = await api.get(`/transactions/stats?days=${days}`);
+export const getTransactionStats = async (days = 90, month, year) => {
+  const params = { days };
+  if (month) params.month = month;
+  if (year) params.year = year;
+  const response = await api.get('/transactions/stats', { params });
   return response.data;
 };
 
-export const getDashboardSummary = async () => {
-  const res = await api.get('/transactions/summary');
+export const getDashboardSummary = async (month, year) => {
+  const params = {};
+  if (month) params.month = month;
+  if (year) params.year = year;
+  const res = await api.get('/transactions/summary', { params });
   return res.data;
 };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, PieChart, TrendingUp, Plus } from 'lucide-react';
 import TopBar from '../components/TopBar';
+import MonthYearSelector from '../components/MonthYearSelector';
 import MetricCard from '../components/MetricCard';
 import InsightCard from '../components/InsightCard';
 import ChartContainer from '../components/ChartContainer';
@@ -27,33 +28,39 @@ export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [trendData, setTrendData] = useState([]);
 
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
   const fetchData = async () => {
-      try {
-        setError(false);
-        const [transRes, statsRes, forecastRes, summaryRes, trendRes] = await Promise.all([
-          getTransactions(1, 5),
-          getTransactionStats(90),
-          getBudgetForecast(),
-          getDashboardSummary(),
-          getMonthlyTrend()
-        ]);
-        setTransactions(transRes.transactions || []);
-        setStats(statsRes);
-        setForecast(forecastRes);
-        setSummary(summaryRes);
-        setTrendData(trendRes.trend || []);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      setError(false);
+      setLoading(true);
+      const [transRes, statsRes, forecastRes, summaryRes, trendRes] = await Promise.all([
+        getTransactions({ page: 1, limit: 5, month: selectedMonth, year: selectedYear }),
+        getTransactionStats(90, selectedMonth, selectedYear),
+        getBudgetForecast(selectedMonth, selectedYear),
+        getDashboardSummary(selectedMonth, selectedYear),
+        getMonthlyTrend()
+      ]);
+      setTransactions(transRes.transactions || []);
+      setStats(statsRes);
+      setForecast(forecastRes);
+      setSummary(summaryRes);
+      setTrendData(trendRes.trend || []);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  }, []);
+  }, [selectedMonth, selectedYear]);
+
+  const handleMonthChange = (m, y) => { setSelectedMonth(m); setSelectedYear(y); };
 
   const currentMonthTotal = stats?.monthlyComparison?.currentMonthTotal || 0;
   const momPct = stats?.monthlyComparison?.momDeltaPercentage || 0;
@@ -82,12 +89,14 @@ export default function Dashboard() {
   const avgDaily = currentMonthTotal / currentDay || 0;
   const limitRemainingRate = totalLimit > 0 ? Math.max(0, (1 - totalSpend / totalLimit) * 100) : null;
 
+  const now2 = new Date();
+  const subtitleText = (selectedMonth === now2.getMonth() + 1 && selectedYear === now2.getFullYear())
+    ? 'THIS MONTH' : `${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][selectedMonth - 1]} ${selectedYear}`;
+
   return (
     <>
-      <TopBar title="Dashboard" subtitle="This Month">
-        <div className="hidden sm:flex items-center bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant">
-          <span className="text-[14px] font-medium">This Month</span>
-        </div>
+      <TopBar title="Dashboard" subtitle={subtitleText}>
+        <MonthYearSelector month={selectedMonth} year={selectedYear} onChange={handleMonthChange} />
       </TopBar>
 
       <div className="p-6 space-y-6 max-w-[1200px] mx-auto w-full">
@@ -103,7 +112,13 @@ export default function Dashboard() {
 
         {loading ? (
           <LoadingState type="cards" />
+        ) : summary && !summary.hasData && transactions.length === 0 ? (
+          <EmptyState
+            title={`No data for ${subtitleText.toLowerCase()}`}
+            description="No transactions, budget, or activity recorded for this month."
+          />
         ) : (
+          <>
           <div className="space-y-6">
             <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <MetricCard
@@ -125,7 +140,7 @@ export default function Dashboard() {
               <MetricCard label="Forecasted End-of-Month" value={projectedValue} trend={projectedTrend} trendValue={projectedTrendValue} icon={<TrendingUp size={18} />} />
             </section>
           </div>
-        )}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <section className="lg:col-span-5 flex flex-col gap-6">
@@ -233,6 +248,8 @@ export default function Dashboard() {
             </div>
           </section>
         </div>
+        </>
+        )}
       </div>
 
       {showAddModal && (
