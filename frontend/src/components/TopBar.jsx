@@ -124,7 +124,12 @@ export default function TopBar({ title, subtitle, children }) {
         {/* Drawer */}
         <div className="relative w-64 max-w-[80%] bg-surface-container h-full flex flex-col shadow-2xl animate-slide-in">
           <div className="flex items-center justify-between p-4 border-b border-outline-variant">
-            <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">SpendSense</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[18px] font-sans font-extrabold text-primary tracking-tight">SpendSense</span>
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface-variant hover:text-primary transition-colors flex mt-0.5">
+                <Home className="w-[18px] h-[18px]" />
+              </Link>
+            </div>
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 text-on-surface-variant hover:text-primary transition-colors"

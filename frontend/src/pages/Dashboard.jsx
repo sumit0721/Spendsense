@@ -98,10 +98,15 @@ export default function Dashboard() {
   return (
     <>
       <TopBar title="Dashboard" subtitle={subtitleText}>
-        <MonthYearSelector month={selectedMonth} year={selectedYear} onChange={handleMonthChange} />
+        <div className="hidden sm:block">
+          <MonthYearSelector month={selectedMonth} year={selectedYear} onChange={handleMonthChange} />
+        </div>
       </TopBar>
 
-      <div className="p-6 space-y-6 max-w-[1200px] mx-auto w-full">
+      <div className="p-4 sm:p-6 space-y-6 max-w-[1200px] mx-auto w-full">
+        <div className="sm:hidden flex justify-center mb-[-12px]">
+          <MonthYearSelector month={selectedMonth} year={selectedYear} onChange={handleMonthChange} />
+        </div>
         {error && (
           <div className="p-4 bg-error-container text-on-error-container rounded-lg border border-error/20 text-[14px] font-medium">
             Could not retrieve recent data from the servers. Displaying local cache/defaults.
