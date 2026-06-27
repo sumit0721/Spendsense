@@ -59,10 +59,10 @@ export default function Home() {
               </Link>
             ) : (
               <>
-                <Link to="/auth" className="hidden sm:block text-on-surface-variant text-[14px] font-medium px-4 py-2 hover:bg-surface-container-low rounded-lg transition-all">
+                <Link to="/auth" className="text-on-surface-variant text-[14px] font-medium px-3 py-2 hover:bg-surface-container-low rounded-lg transition-all">
                   Login
                 </Link>
-                <Link to="/auth" className="hidden sm:inline-flex bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:opacity-90 transition-all active:scale-95 shadow-sm">
+                <Link to="/auth?mode=register" className="hidden sm:inline-flex bg-primary text-on-primary px-6 py-2.5 rounded-lg text-[14px] font-medium hover:opacity-90 transition-all active:scale-95 shadow-sm">
                   Get Started
                 </Link>
               </>
@@ -96,10 +96,7 @@ export default function Home() {
                   </Link>
                 ) : (
                   <>
-                    <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="bg-surface-container-low text-on-surface text-center px-4 py-3 rounded-xl font-medium">
-                      Login
-                    </Link>
-                    <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="bg-primary text-on-primary text-center px-4 py-3 rounded-xl font-medium shadow-sm">
+                    <Link to="/auth?mode=register" onClick={() => setIsMobileMenuOpen(false)} className="bg-primary text-on-primary text-center px-4 py-3 rounded-xl font-medium shadow-sm">
                       Get Started Free
                     </Link>
                   </>
@@ -127,7 +124,7 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to={user ? "/dashboard" : "/auth"}
+                  to={user ? "/dashboard" : "/auth?mode=register"}
                   className="bg-primary text-on-primary px-8 py-4 rounded-xl text-[14px] font-medium hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   Launch Dashboard
@@ -318,7 +315,7 @@ export default function Home() {
                 Join students who are taking control of their financial future with SpendSense.
               </p>
               <Link
-                to={user ? "/dashboard" : "/auth"}
+                to={user ? "/dashboard" : "/auth?mode=register"}
                 className="inline-block bg-on-primary text-primary px-10 py-4 rounded-xl text-[14px] font-bold hover:opacity-90 transition-all active:scale-95 shadow-md"
               >
                 {user ? 'Go to Dashboard' : 'Get Started Free'}

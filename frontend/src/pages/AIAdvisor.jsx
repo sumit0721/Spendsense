@@ -14,6 +14,9 @@ const defaultMessage = {
 export default function AIAdvisor() {
   const [messages, setMessages] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -52,9 +55,6 @@ export default function AIAdvisor() {
     }
   };
 
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [isListening, setIsListening] = useState(false);
 
   const startListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;

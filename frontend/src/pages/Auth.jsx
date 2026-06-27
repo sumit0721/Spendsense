@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, KeyRound, ArrowLeft } from 'lucide-react';
 import { forgotPassword } from '../services/api';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialMode = searchParams.get('mode') === 'register' ? false : true;
+  const [isLogin, setIsLogin] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');

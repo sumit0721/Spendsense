@@ -1,14 +1,14 @@
 
 import { useState } from 'react';
 import { useLocation, Link, NavLink, useNavigate } from 'react-router-dom';
-import { Calendar, Sun, Moon, Home, Menu, X, LayoutDashboard, Receipt, Target, Repeat, Sparkles } from 'lucide-react';
+import { Calendar, Sun, Moon, Home, Menu, X, LayoutDashboard, Receipt, Target, Repeat, Sparkles, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import NotificationPanel from './NotificationPanel';
 
 export default function TopBar({ title, subtitle, children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
@@ -161,6 +161,29 @@ export default function TopBar({ title, subtitle, children }) {
               );
             })}
           </nav>
+          
+          <div className="mt-auto border-t border-outline-variant p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center font-bold text-[14px] text-on-surface uppercase">
+                {user?.name?.slice(0, 2) || 'U'}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[14px] font-bold text-on-surface truncate">{user?.name || 'User'}</span>
+                <span className="text-[11px] text-on-surface-variant truncate uppercase tracking-wider">{user?.email || 'USER@EXAMPLE.COM'}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                logout();
+                navigate('/auth');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-error hover:bg-error-container/50 transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </button>
+          </div>
         </div>
       </div>
     )}
