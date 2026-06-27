@@ -35,7 +35,7 @@ export default function TopBar({ title, subtitle, children }) {
 
   return (
     <>
-    <header className="h-16 border-b border-outline-variant bg-surface shadow-sm px-4 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
+    <header className="h-16 border-b border-outline-variant bg-surface shadow-sm px-2 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
       <div className="flex items-center gap-3">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
@@ -56,15 +56,15 @@ export default function TopBar({ title, subtitle, children }) {
       </div>
 
       {/* Dynamic children (e.g. search bars, history controls) */}
-      <div className="flex-1 flex justify-center px-md max-w-md">
+      <div className="flex-1 flex justify-center px-1 sm:px-md min-w-0">
         {children}
       </div>
 
-      <div className="flex items-center gap-md">
+      <div className="flex items-center gap-1 sm:gap-md shrink-0">
         {/* Home Button */}
         <Link 
           to="/"
-          className="p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none"
+          className="hidden sm:flex p-xs hover:bg-surface-container border border-outline-variant/60 hover:border-outline-variant text-on-surface-variant hover:text-primary rounded-lg transition-all focus:outline-none"
           title="Go to Home"
         >
           <Home className="w-[18px] h-[18px]" />

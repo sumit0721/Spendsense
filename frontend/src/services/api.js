@@ -180,8 +180,11 @@ export const getDashboardSummary = async (month, year) => {
   return res.data;
 };
 
-export const getMonthlyTrend = async (months = 6) => {
-  const res = await api.get(`/transactions/trend?months=${months}`);
+export const getMonthlyTrend = async (month, year) => {
+  const params = {};
+  if (month) params.month = month;
+  if (year) params.year = year;
+  const res = await api.get('/transactions/trend', { params });
   return res.data;
 };
 

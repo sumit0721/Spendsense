@@ -14,7 +14,7 @@ import AddTransactionModal from '../components/AddTransactionModal';
 import SetBudgetModal from '../components/SetBudgetModal';
 import { getTransactions, getTransactionStats, getBudgetForecast, getDashboardSummary, getMonthlyTrend } from '../services/api';
 import CategoryPieChart from '../components/CategoryPieChart';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ export default function Dashboard() {
         getTransactionStats(90, selectedMonth, selectedYear),
         getBudgetForecast(selectedMonth, selectedYear),
         getDashboardSummary(selectedMonth, selectedYear),
-        getMonthlyTrend()
+        getMonthlyTrend(selectedMonth, selectedYear)
       ]);
       setTransactions(transRes.transactions || []);
       setStats(statsRes);
@@ -206,7 +206,11 @@ export default function Dashboard() {
                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         formatter={(value) => [`₹${value}`, 'Expense']}
                       />
-                      <Bar dataKey="total" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                      <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                        {trendData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.isTargetMonth ? '#8b5cf6' : '#d8b4fe'} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (

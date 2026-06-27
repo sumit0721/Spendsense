@@ -23,10 +23,17 @@ const getTransactions = asyncHandler(async (req, res) => {
     filter.category = req.query.category;
   }
 
-  // Date range filter — both bounds optional, independently usable.
-  // Invalid date strings are silently ignored rather than crashing the
-  // request, since this comes from user-controlled query params.
-  if (req.query.startDate || req.query.endDate) {
+  // Date range filter
+  if (req.query.month && req.query.year) {
+    const m = parseInt(req.query.month, 10);
+    const y = parseInt(req.query.year, 10);
+    if (!isNaN(m) && !isNaN(y)) {
+      filter.date = {
+        $gte: new Date(y, m - 1, 1),
+        $lte: new Date(y, m, 0, 23, 59, 59, 999)
+      };
+    }
+  } else if (req.query.startDate || req.query.endDate) {
     filter.date = {};
     if (req.query.startDate) {
       const start = new Date(req.query.startDate);
@@ -271,12 +278,16 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
 });
 
 const getMonthlyTrend = asyncHandler(async (req, res) => {
-  const monthsBack = Math.min(12, Math.max(1, parseInt(req.query.months, 10) || 6));
   const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth() - (monthsBack - 1), 1);
+  const month = parseInt(req.query.month, 10) || (now.getMonth() + 1);
+  const year = parseInt(req.query.year, 10) || now.getFullYear();
+
+  const targetDate = new Date(year, month - 1, 1);
+  const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1);
+  const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 2, 0, 23, 59, 59, 999);
 
   const trend = await Transaction.aggregate([
-    { $match: { user: req.user._id, type: { $ne: 'income' }, date: { $gte: startDate } } },
+    { $match: { user: req.user._id, type: { $ne: 'income' }, date: { $gte: startDate, $lte: endDate } } },
     {
       $group: {
         _id: { year: { $year: '$date' }, month: { $month: '$date' } },
@@ -286,16 +297,16 @@ const getMonthlyTrend = asyncHandler(async (req, res) => {
     { $sort: { '_id.year': 1, '_id.month': 1 } },
   ]);
 
-  // Fill in months with zero spend so the chart doesn't skip gaps —
-  // a missing month should show ₹0, not just disappear from the x-axis.
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const result = [];
-  for (let i = monthsBack - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  
+  for (let i = -1; i <= 1; i++) {
+    const d = new Date(targetDate.getFullYear(), targetDate.getMonth() + i, 1);
     const match = trend.find((t) => t._id.year === d.getFullYear() && t._id.month === d.getMonth() + 1);
     result.push({
       label: `${monthNames[d.getMonth()]} ${d.getFullYear()}`,
       total: match ? Math.round(match.total * 100) / 100 : 0,
+      isTargetMonth: i === 0
     });
   }
 
