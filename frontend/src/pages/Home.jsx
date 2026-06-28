@@ -109,39 +109,75 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[600px] flex items-center overflow-hidden pt-20">
-          <div className="max-w-[1280px] mx-auto px-10 grid md:grid-cols-2 gap-12 items-center relative z-10">
-            <div className="reveal opacity-0 translate-y-8 transition-all duration-700">
-              <span className="inline-block bg-anomaly-bg text-anomaly-text px-3 py-1 rounded-full text-[12px] font-semibold uppercase tracking-wider mb-6">
+        <section className="relative min-h-[600px] flex items-center overflow-hidden pt-20 md:pt-20">
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-10 grid md:grid-cols-2 gap-6 md:gap-12 items-center relative z-10">
+            <div className="reveal opacity-0 translate-y-8 transition-all duration-700 flex flex-col">
+              <span className="order-1 inline-block bg-anomaly-bg text-anomaly-text px-3 py-1 rounded-full text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider mb-3 md:mb-6 w-fit">
                 Financial Intelligence
               </span>
-              <h1 className="text-[48px] leading-[1.1] tracking-[-0.02em] font-bold mb-6 text-on-surface">
+              <h1 className="order-2 text-[34px] sm:text-[40px] md:text-[48px] leading-[1.15] md:leading-[1.1] tracking-[-0.01em] md:tracking-[-0.02em] font-bold mb-3 md:mb-6 text-on-surface">
                 Your Money, <span className="text-[#EA580C]">Explained.</span>
               </h1>
-              <p className="text-[18px] leading-[1.6] text-on-surface-variant mb-10 max-w-lg">
-                The ultimate AI-driven financial oversight tool designed specifically for the next generation.
-                Securely track spending, predict future budgets, and get academic-level financial advice.
-              </p>
-              <div className="flex flex-wrap gap-4">
+
+              <div className="order-3 md:hidden relative reveal opacity-0 translate-y-8 transition-all duration-700 delay-100 mb-4">
+                <div className="bg-surface-container-lowest/80 backdrop-blur-md p-3 rounded-2xl border border-white/40 shadow-2xl">
+                  <div className="bg-surface-container-low rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[13px] font-semibold">Monthly Overview</span>
+                      <span className="text-[11px] text-on-surface-variant">Oct 2024</span>
+                    </div>
+                    <div className="text-[26px] font-bold tabular-nums">₹1,240.50</div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-[12px]">
+                        <span>Rent</span><span className="tabular-nums font-medium">₹750.00</span>
+                      </div>
+                      <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-primary h-full w-[60%] rounded-full" />
+                      </div>
+                      <div className="flex justify-between text-[12px]">
+                        <span>Groceries</span><span className="tabular-nums font-medium">₹210.30</span>
+                      </div>
+                      <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-secondary h-full w-[17%] rounded-full" />
+                      </div>
+                      <div className="flex justify-between text-[12px] text-anomaly-text font-bold">
+                        <span className="flex items-center gap-1">Dining <AlertTriangle size={11} /></span>
+                        <span className="tabular-nums">₹185.00</span>
+                      </div>
+                      <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-anomaly-border h-full w-[15%] rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-4 flex flex-wrap gap-3 md:gap-4 mb-4 md:mb-0 md:order-3">
                 <Link
                   to={user ? "/dashboard" : "/auth?mode=register"}
-                  className="bg-primary text-on-primary px-8 py-4 rounded-xl text-[14px] font-medium hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="bg-primary text-on-primary px-6 md:px-8 py-3 md:py-4 rounded-xl text-[13px] md:text-[14px] font-medium hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   Launch Dashboard
                 </Link>
                 <Link
                   to={user ? "/advisor" : "/auth"}
-                  className="bg-surface-container-lowest border border-outline-variant text-on-surface px-8 py-4 rounded-xl text-[14px] font-medium hover:bg-surface-container-low hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
+                  className="bg-surface-container-lowest border border-outline-variant text-on-surface px-6 md:px-8 py-3 md:py-4 rounded-xl text-[13px] md:text-[14px] font-medium hover:bg-surface-container-low hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                 >
-                  <Brain size={18} />
+                  <Brain size={16} className="md:hidden" />
+                  <Brain size={18} className="hidden md:inline" />
                   Try AI Advisor
                 </Link>
               </div>
+
+              <p className="order-5 md:order-2 text-[14px] sm:text-[18px] leading-[1.6] text-on-surface-variant mb-0 md:mb-10 max-w-lg">
+                The ultimate AI-driven financial oversight tool designed specifically for the next generation.
+                Securely track spending, predict future budgets, and get academic-level financial advice.
+              </p>
             </div>
-            <div className="relative reveal opacity-0 translate-y-8 transition-all duration-700 delay-200">
+
+            <div className="hidden md:block relative reveal opacity-0 translate-y-8 transition-all duration-700 delay-200">
               <div className="bg-surface-container-lowest/80 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-2xl">
                 <div className="bg-surface-container-low rounded-xl p-6 space-y-4">
-                  {/* Mini dashboard preview */}
                   <div className="flex justify-between items-center">
                     <span className="text-[14px] font-semibold">Monthly Overview</span>
                     <span className="text-[12px] text-on-surface-variant">Oct 2024</span>
@@ -170,7 +206,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              {/* Decorative blurs */}
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-anomaly-bg/30 rounded-full blur-3xl -z-10 animate-pulse" />
               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-secondary-container/40 rounded-full blur-3xl -z-10 animate-pulse" style={{ animationDelay: '2s' }} />
             </div>

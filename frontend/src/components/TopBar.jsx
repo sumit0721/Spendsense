@@ -35,32 +35,34 @@ export default function TopBar({ title, subtitle, children }) {
 
   return (
     <>
-    <header className="h-16 border-b border-outline-variant bg-surface shadow-sm px-2 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300">
-      <div className="flex items-center gap-3">
+    <header className="h-16 border-b border-outline-variant bg-surface shadow-sm px-2 md:px-lg flex items-center justify-between sticky top-0 z-40 w-full shrink-0 transition-colors duration-300 gap-1 sm:gap-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
         <button 
           onClick={() => setIsMobileMenuOpen(true)}
-          className="md:hidden p-2 -ml-2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none"
+          className="md:hidden p-2 -ml-2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none shrink-0"
         >
           <Menu className="w-6 h-6" />
         </button>
-        <div className="flex flex-col">
-          <h2 className="text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-none m-0">
+        <div className="flex flex-col min-w-0 max-w-[92px] sm:max-w-none">
+          <h2 className="text-[13px] sm:text-[16px] md:text-[18px] font-sans font-bold text-on-surface leading-tight m-0 truncate">
             {getPageTitle()}
           </h2>
           {subtitle && (
-            <span className="text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[2px] truncate max-w-[150px] md:max-w-none">
+            <span className="text-[9px] sm:text-[11px] text-secondary font-semibold uppercase tracking-wider mt-[1px] sm:mt-[2px] truncate max-w-[92px] sm:max-w-[150px] md:max-w-none">
               {subtitle}
             </span>
           )}
         </div>
       </div>
 
-      {/* Dynamic children (e.g. search bars, history controls) */}
-      <div className="flex-1 flex justify-center px-1 sm:px-md min-w-0">
+      {/* Dynamic children (e.g. search bars, history controls, add buttons).
+          On mobile this zone shrinks to fit rather than forcing a fixed
+          justify-center width, which was pushing into the right-side icons. */}
+      <div className="flex-1 flex justify-end sm:justify-center px-0.5 sm:px-md min-w-0 overflow-hidden">
         {children}
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-md shrink-0">
+      <div className="flex items-center gap-0.5 sm:gap-md shrink-0">
         {/* Home Button */}
         <Link 
           to="/"

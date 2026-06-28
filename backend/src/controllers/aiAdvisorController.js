@@ -110,6 +110,9 @@ ${JSON.stringify(contextData, null, 2)}
   }
 });
 
+const advisoryCache = new Map();
+const ADVISORY_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
 const getBudgetForecast = asyncHandler(async (req, res) => {
   const now = new Date();
   const month = parseInt(req.query.month, 10) || (now.getMonth() + 1);
@@ -123,7 +126,7 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
   const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
   const transactions = await Transaction.find({ user: req.user._id, date: { $gte: monthStart, $lte: monthEnd } }).lean();
 
-  const currentDay = isCurrentMonth ? now.getDate() : new Date(year, month, 0).getDate(); // full month if past
+  const currentDay = isCurrentMonth ? now.getDate() : new Date(year, month, 0).getDate();
   const totalDaysInMonth = new Date(year, month, 0).getDate();
 
   const categoryForecasts = {};
@@ -136,11 +139,8 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
   }
 
   if (isFutureMonth) {
-    // A future month has zero actuals and no velocity to project from —
-    // nothing meaningful to forecast yet.
     for (const cat of EXPENSE_CATEGORIES) categoryForecasts[cat].status = 'no-data';
   } else if (isCurrentMonth) {
-    // Existing forecast logic — UNCHANGED — only runs for the real current month.
     if (currentDay < 3) {
       const prevMonthStart = new Date(year, month - 2, 1);
       const prevMonthEnd = new Date(year, month - 1, 0, 23, 59, 59, 999);
@@ -164,8 +164,6 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
       }
     }
   } else {
-    // PAST month: no projection needed — actuals ARE the final number.
-    // projectedSpend = currentSpend, since the month is already over.
     for (const cat of EXPENSE_CATEGORIES) {
       categoryForecasts[cat].projectedSpend = categoryForecasts[cat].currentSpend;
     }
@@ -185,17 +183,48 @@ const getBudgetForecast = asyncHandler(async (req, res) => {
     }
   }
 
-  let advisorySentence;
+  let fallbackSentence;
   if (isFutureMonth) {
-    advisorySentence = 'This month is in the future — no spending data yet.';
+    fallbackSentence = 'This month is in the future — no spending data yet.';
   } else if (isCurrentMonth) {
-    advisorySentence = overBudgetWarnings.length > 0
+    fallbackSentence = overBudgetWarnings.length > 0
       ? `You are projected to exceed your budget limit in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}. Try trimming discretionary costs.`
       : 'Your spending velocity is looking great! All categories are currently projected to stay within budget limits.';
   } else {
-    advisorySentence = overBudgetWarnings.length > 0
+    fallbackSentence = overBudgetWarnings.length > 0
       ? `This month, you exceeded your budget in: ${overBudgetWarnings.map(w => w.split(' ')[0]).join(', ')}.`
       : 'This month is complete — you stayed within budget in every category.';
+  }
+
+  const cacheKey = `${req.user._id}:${month}:${year}`;
+  const cached = advisoryCache.get(cacheKey);
+  let advisorySentence = fallbackSentence;
+
+  if (cached && (Date.now() - cached.timestamp) < ADVISORY_CACHE_TTL_MS) {
+    advisorySentence = cached.sentence;
+  } else if (process.env.GEMINI_API_KEY) {
+    try {
+      const prompt = `You are a friendly financial advisor for a student. All amounts are in Indian Rupees (₹) — always use ₹, never $.
+This is a ${isFutureMonth ? 'future' : isCurrentMonth ? 'current, in-progress' : 'completed past'} month.
+${overBudgetWarnings.length > 0
+  ? `The student has exceeded or is projected to exceed their budget in: ${overBudgetWarnings.join('; ')}.`
+  : 'The student is within budget in every category that has a limit set.'}
+Write exactly ONE concise, encouraging sentence (max 25 words) giving the student a specific, actionable tip. Do not repeat exact numbers already given. Do not use markdown.`;
+
+      let text;
+      await callGeminiWithFallback(async (model) => {
+        const result = await model.generateContent(prompt);
+        text = result.response.text().trim();
+      });
+
+      if (text) {
+        advisorySentence = text.replace(/^"|"$/g, '');
+        advisoryCache.set(cacheKey, { sentence: advisorySentence, timestamp: Date.now() });
+      }
+    } catch (err) {
+      console.error('[Gemini Forecast Advisory Error]:', err.message);
+      advisorySentence = fallbackSentence;
+    }
   }
 
   const forecastsList = Object.keys(categoryForecasts).map(cat => ({ category: cat, ...categoryForecasts[cat] }))
