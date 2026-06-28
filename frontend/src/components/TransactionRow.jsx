@@ -53,17 +53,19 @@ export default function TransactionRow({ transaction, onRowClick, onDeleteSucces
         isAnomaly ? 'bg-error/[0.02] border-l-4 border-l-error' : 'border-l-4 border-l-transparent'
       } ${onRowClick ? 'cursor-pointer' : ''}`}
     >
-      <td className="px-md py-sm">
+      <td className="px-3 sm:px-md py-sm max-w-[160px] sm:max-w-none">
         <div className="flex items-center gap-sm">
-          <div className={`p-xs rounded-lg ${isAnomaly ? 'bg-error/10 text-error' : 'bg-primary/5 text-primary'}`}>
+          <div className={`p-xs rounded-lg shrink-0 ${isAnomaly ? 'bg-error/10 text-error' : 'bg-primary/5 text-primary'}`}>
             <IconComponent className="w-[18px] h-[18px]" />
           </div>
-          <div>
-            <span className="text-[14px] font-sans font-bold text-on-surface block">
+          <div className="min-w-0">
+            <span className="text-[14px] font-sans font-bold text-on-surface block truncate">
               {merchant}
             </span>
-            <span className="text-[12px] text-on-surface-variant font-medium md:hidden block">
-              {formattedDate}
+            <span className="text-[11px] sm:text-[12px] text-on-surface-variant font-medium md:hidden flex items-center gap-1 truncate">
+              <span className="truncate">{category}</span>
+              <span className="shrink-0">·</span>
+              <span className="shrink-0">{formattedDate}</span>
             </span>
           </div>
         </div>
@@ -76,17 +78,17 @@ export default function TransactionRow({ transaction, onRowClick, onDeleteSucces
       <td className="px-md py-sm text-on-surface-variant text-[12px] font-medium hidden md:table-cell">
         {formattedDate}
       </td>
-      <td className="px-md py-sm">
+      <td className="px-3 sm:px-md py-sm">
         <div className="flex flex-col items-end gap-[2px]">
-          <span className={`text-[14px] font-sans font-bold text-on-surface tabular-nums`}>
+          <span className={`text-[13px] sm:text-[14px] font-sans font-bold text-on-surface tabular-nums`}>
             {amount < 0 ? `-₹` : `₹`}{Math.abs(amount).toFixed(2)}
           </span>
-          <div className="flex items-center gap-[4px] mt-[2px]">
-            {isAnomaly && <AnomalyBadge label="Flagged" className="scale-90 origin-right" />}
-            {!isAnomaly && <StatusChip status={status} className="scale-90 origin-right" />}
+          <div className="flex items-center gap-[2px] sm:gap-[4px] mt-[2px]">
+            {isAnomaly && <AnomalyBadge label="Flagged" className="scale-90 origin-right hidden sm:inline-flex" />}
+            {!isAnomaly && <StatusChip status={status} className="scale-90 origin-right hidden sm:inline-flex" />}
             <button
               onClick={handleDelete}
-              className="text-on-surface-variant hover:text-error ml-2 p-1 rounded transition-colors"
+              className="text-on-surface-variant hover:text-error ml-1 sm:ml-2 p-1 rounded transition-colors"
               title="Delete transaction"
             >
               <Trash2 size={16} />

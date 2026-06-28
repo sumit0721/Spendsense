@@ -361,10 +361,10 @@ export default function Transactions() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-surface-container-low border-b border-outline-variant">
-                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px]">Merchant</th>
-                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px]">Category</th>
-                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px]">Date</th>
-                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px] text-right">Amount</th>
+                      <th className="px-3 sm:px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px]">Merchant</th>
+                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px] hidden md:table-cell">Category</th>
+                      <th className="px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px] hidden md:table-cell">Date</th>
+                      <th className="px-3 sm:px-6 py-3 text-[14px] font-medium text-on-surface-variant uppercase tracking-wider text-[11px] text-right">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant">

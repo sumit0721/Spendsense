@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, X, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { createTransaction } from '../services/api';
 
@@ -12,7 +12,8 @@ export default function ReceiptScanner({ onClose, onSuccess }) {
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ merchant: '', amount: '', date: '', category: '', paymentMethod: 'Other' });
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -89,41 +90,69 @@ export default function ReceiptScanner({ onClose, onSuccess }) {
 
           {step === 'upload' && (
             <>
+              {/* Two separate inputs are required here, not one: capture="environment"
+                  forces mobile browsers straight into the camera with no fallback UI,
+                  so it cannot also serve as a gallery picker. Splitting into two
+                  inputs + two buttons is the standard pattern for offering both. */}
               <input
-                ref={fileInputRef}
+                ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
               />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
               {preview ? (
                 <div className="space-y-3">
                   <img src={preview} alt="Receipt preview" className="w-full max-h-64 object-contain rounded-lg border border-outline-variant" />
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex-1 px-4 py-2.5 bg-surface-container-low text-on-surface rounded-lg text-[13px] sm:text-[14px] font-medium"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="px-3 py-2.5 bg-surface-container-low text-on-surface rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5"
                     >
-                      Choose Different
+                      <Camera size={15} /> Retake
                     </button>
                     <button
-                      onClick={handleScan}
-                      className="flex-1 px-4 py-2.5 bg-primary text-on-primary rounded-lg text-[13px] sm:text-[14px] font-medium"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="px-3 py-2.5 bg-surface-container-low text-on-surface rounded-lg text-[12px] sm:text-[13px] font-medium flex items-center justify-center gap-1.5"
                     >
-                      Scan This Receipt
+                      <Upload size={15} /> Choose Different
                     </button>
                   </div>
+                  <button
+                    onClick={handleScan}
+                    className="w-full px-4 py-2.5 bg-primary text-on-primary rounded-lg text-[13px] sm:text-[14px] font-medium"
+                  >
+                    Scan This Receipt
+                  </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-outline-variant rounded-xl py-10 sm:py-12 flex flex-col items-center gap-3 text-on-surface-variant hover:bg-surface-container-low transition-colors"
-                >
-                  <Camera size={32} />
-                  <span className="text-[13px] sm:text-[14px] font-medium">Tap to take a photo or upload</span>
-                  <span className="text-[11px] sm:text-[12px]">Restaurant bill, grocery bill, medical bill</span>
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="border-2 border-dashed border-outline-variant rounded-xl py-8 sm:py-10 flex flex-col items-center gap-2 text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                  >
+                    <Camera size={28} />
+                    <span className="text-[13px] sm:text-[14px] font-medium">Take a Photo</span>
+                  </button>
+                  <button
+                    onClick={() => galleryInputRef.current?.click()}
+                    className="border-2 border-dashed border-outline-variant rounded-xl py-8 sm:py-10 flex flex-col items-center gap-2 text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                  >
+                    <Upload size={28} />
+                    <span className="text-[13px] sm:text-[14px] font-medium">Upload from Gallery</span>
+                  </button>
+                  <p className="col-span-1 sm:col-span-2 text-[11px] sm:text-[12px] text-center text-on-surface-variant mt-1">
+                    Restaurant bill, grocery bill, medical bill
+                  </p>
+                </div>
               )}
             </>
           )}
