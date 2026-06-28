@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Calendar, IndianRupee, Download, Plus, X, FileText, FileSpreadsheet, File } from 'lucide-react';
+import { Calendar, IndianRupee, Download, Plus, X, FileText, FileSpreadsheet, File, Camera } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import TransactionRow from '../components/TransactionRow';
 import Pagination from '../components/Pagination';
@@ -7,6 +7,7 @@ import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import Button from '../components/Button';
 import AddTransactionModal from '../components/AddTransactionModal';
+import ReceiptScanner from '../components/ReceiptScanner';
 import { getTransactions, exportPDF, exportExcel } from '../services/api';
 
 const CATEGORIES = ['Rent', 'Groceries', 'Dining', 'Subscriptions', 'Travel', 'Education', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Other'];
@@ -21,6 +22,7 @@ export default function Transactions() {
   const [sortOption, setSortOption] = useState('-date');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   // Date range and amount range — real filter state, replacing the old
   // alert("coming soon") placeholders.
@@ -319,6 +321,9 @@ export default function Transactions() {
               <Plus size={16} />
               Add Transaction
             </Button>
+            <Button variant="secondary" size="sm" onClick={() => setShowReceiptScanner(true)}>
+              <Camera size={16} /> Scan Receipt
+            </Button>
             <div className="relative" ref={exportRef}>
               <Button variant="secondary" size="sm" onClick={() => setShowExportMenu((p) => !p)}>
                 <Download size={16} /> Export
@@ -385,6 +390,13 @@ export default function Transactions() {
         <AddTransactionModal
           onClose={() => setShowAddModal(false)}
           onSuccess={() => { setShowAddModal(false); fetchTransactions(); }}
+        />
+      )}
+
+      {showReceiptScanner && (
+        <ReceiptScanner
+          onClose={() => setShowReceiptScanner(false)}
+          onSuccess={() => { setShowReceiptScanner(false); fetchTransactions(); }}
         />
       )}
     </>
