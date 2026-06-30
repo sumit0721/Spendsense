@@ -27,6 +27,7 @@ const MERCHANT_KEYWORDS = {
   Health: ['pharmacy', 'apollo', 'medical', 'chemist', 'hospital', 'clinic'],
   Shopping: ['mart', 'store', 'mall', 'retail'],
   Travel: ['petrol', 'fuel', 'diesel'],
+  Utilities: ['recharge', 'airtel', 'jio', 'vi ', 'vodafone', 'electricity', 'broadband', 'wifi bill', 'dth'],
 };
 
 const guessCategory = (text) => {
@@ -47,32 +48,62 @@ const guessCategory = (text) => {
 const parseReceiptText = (rawText) => {
   const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
 
-  // Amount: look for "Total" line first (most reliable), fall back to
-  // the largest ₹-prefixed number found anywhere in the text.
+  // --- AMOUNT ---
   let amount = null;
   const totalLineMatch = rawText.match(/total[:\s]*₹?\s?(\d+(?:,\d{3})*(?:\.\d{1,2})?)/i);
   if (totalLineMatch) {
     amount = parseFloat(totalLineMatch[1].replace(/,/g, ''));
   } else {
-    const allAmounts = [...rawText.matchAll(/₹\s?(\d+(?:,\d{3})*(?:\.\d{1,2})?)/g)]
+    const rupeeAmounts = [...rawText.matchAll(/₹\s?(\d+(?:,\d{3})*(?:\.\d{1,2})?)/g)]
       .map((m) => parseFloat(m[1].replace(/,/g, '')));
-    if (allAmounts.length > 0) amount = Math.max(...allAmounts);
+    if (rupeeAmounts.length > 0) amount = Math.max(...rupeeAmounts);
   }
 
-  // Date: common Indian receipt formats (DD/MM/YYYY, DD-MM-YYYY)
+  if (amount === null) {
+    const decimalAmounts = [...rawText.matchAll(/\b(\d{1,6}\.\d{2})\b/g)]
+      .map((m) => parseFloat(m[1]));
+    if (decimalAmounts.length > 0) {
+      const successLine = lines.find((l) => /success|paid|amount/i.test(l));
+      const successLineIdx = successLine ? lines.indexOf(successLine) : -1;
+      if (successLineIdx !== -1 && successLineIdx + 1 < lines.length) {
+        const nearbyMatch = lines[successLineIdx + 1].match(/(\d{1,6}\.\d{2})/);
+        if (nearbyMatch) amount = parseFloat(nearbyMatch[1]);
+      }
+      if (amount === null) amount = Math.max(...decimalAmounts);
+    }
+  }
+
+  // --- DATE ---
   let date = null;
-  const dateRegex = new RegExp("(\\d{1,2})[-/](\\d{1,2})[-/](\\d{2,4})");
-  const dateMatch = rawText.match(dateRegex);
-  if (dateMatch) {
-    let [, d, m, y] = dateMatch;
+  const numericDateMatch = rawText.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})/);
+  if (numericDateMatch) {
+    let [, d, m, y] = numericDateMatch;
     if (y.length === 2) y = `20${y}`;
     const parsed = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
     if (!isNaN(parsed.getTime())) date = parsed.toISOString().split('T')[0];
+  } else {
+    const monthNames = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec[a-z]*';
+    const writtenDateMatch = rawText.match(
+      new RegExp(`(\\d{1,2})\\s+(${monthNames})\\s+(\\d{4})`, 'i')
+    );
+    if (writtenDateMatch) {
+      const [, d, monthStr, y] = writtenDateMatch;
+      const parsed = new Date(`${d} ${monthStr} ${y}`);
+      if (!isNaN(parsed.getTime())) date = parsed.toISOString().split('T')[0];
+    }
   }
 
-  // Merchant: first non-empty line is the most common convention on
-  // Indian retail receipts (store name printed at the top).
-  const merchant = lines[0] || null;
+  // --- MERCHANT ---
+  let merchant = null;
+  const labeledMatch = rawText.match(/(?:for|paid\s*to|to|merchant)\s*:\s*(.+)/i);
+  if (labeledMatch) {
+    merchant = labeledMatch[1].split('\n')[0].trim().slice(0, 80);
+  }
+  if (!merchant) {
+    const brandWords = ['paytm', 'gpay', 'google pay', 'phonepe', 'amazon pay', 'order successful', 'payment successful'];
+    const firstRealLine = lines.find((l) => !brandWords.some((b) => l.toLowerCase().includes(b)));
+    merchant = firstRealLine || lines[0] || null;
+  }
 
   const category = guessCategory(rawText);
 
@@ -81,10 +112,7 @@ const parseReceiptText = (rawText) => {
     date,
     merchant,
     category,
-    rawText, // returned for debugging/manual correction reference, not stored long-term
-    // Surfaces to the frontend exactly which fields need the user's
-    // attention, rather than presenting a confident-looking guess that
-    // might be silently wrong.
+    rawText,
     needsReview: !amount || !date || !merchant,
   };
 };

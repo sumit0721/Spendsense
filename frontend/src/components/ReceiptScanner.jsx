@@ -12,6 +12,8 @@ export default function ReceiptScanner({ onClose, onSuccess }) {
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ merchant: '', amount: '', date: '', category: '', paymentMethod: 'Other' });
+  const [ocrRawText, setOcrRawText] = useState('');
+  const [showRawText, setShowRawText] = useState(false);
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
 
@@ -40,6 +42,7 @@ export default function ReceiptScanner({ onClose, onSuccess }) {
         category: res.data.category || '',
         paymentMethod: 'Other',
       });
+      setOcrRawText(res.data.rawText || '');
       setStep('review');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to scan receipt. Try a clearer photo.');
@@ -169,6 +172,23 @@ export default function ReceiptScanner({ onClose, onSuccess }) {
               <p className="text-[12px] sm:text-[13px] text-on-surface-variant bg-anomaly-bg/40 p-2.5 rounded-lg">
                 Review the details below — OCR isn't perfect. Fix anything that looks wrong before saving.
               </p>
+
+              {ocrRawText && (
+                <div className="border border-outline-variant rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowRawText((p) => !p)}
+                    className="w-full px-3 py-2 text-[11px] sm:text-[12px] font-medium text-on-surface-variant bg-surface-container-low text-left"
+                  >
+                    {showRawText ? '▾' : '▸'} What OCR actually read (tap if a field looks wrong)
+                  </button>
+                  {showRawText && (
+                    <pre className="px-3 py-2 text-[11px] text-on-surface-variant whitespace-pre-wrap max-h-32 overflow-y-auto bg-surface-container-lowest">
+                      {ocrRawText}
+                    </pre>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="text-[12px] sm:text-[13px] font-medium text-on-surface-variant">Merchant</label>
                 <input
