@@ -76,7 +76,7 @@ export default function Dashboard() {
   const spendTrendValue = stats ? `${momPct > 0 ? '+' : ''}${momPct}% vs last month` : 'No data yet';
 
   const totalSpend = forecast?.forecasts?.reduce((acc, f) => acc + (f.currentSpend || 0), 0) || 0;
-  const totalLimit = forecast?.forecasts?.reduce((acc, f) => acc + (f.limit || 0), 0) || 0;
+  const totalLimit = forecast?.totalLimit || 0;
   const budgetRemaining = totalLimit - totalSpend;
   const budgetProgress = totalLimit > 0 ? (totalSpend / totalLimit) * 100 : undefined;
   const budgetProgressLabel = totalLimit > 0 ? `Spent ₹${totalSpend.toFixed(2)} of ₹${totalLimit.toFixed(2)}` : 'Set a budget to start tracking';

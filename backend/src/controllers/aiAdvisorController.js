@@ -232,6 +232,7 @@ Write exactly ONE concise, encouraging sentence (max 25 words) giving the studen
 
   res.status(200).json({
     success: true, month, year, daysElapsed: currentDay, totalDays: totalDaysInMonth,
+    totalLimit: budget?.totalLimit || 0,
     forecasts: forecastsList, advisorySentence,
     isPastMonth: !isCurrentMonth && !isFutureMonth,
     isFutureMonth,

@@ -36,10 +36,20 @@ export default function SetBudgetModal({ onClose, onSuccess }) {
     }));
   };
 
+  const numericTotalLimit = parseFloat(totalLimit) || 0;
+  const sumOfCategories = Object.values(categoryLimits).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+  const remainingBudget = numericTotalLimit - sumOfCategories;
+  const isOverBudget = remainingBudget < 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!totalLimit || isNaN(totalLimit) || Number(totalLimit) <= 0) {
       setError('Please enter a valid total monthly budget.');
+      return;
+    }
+
+    if (isOverBudget) {
+      setError('Category limits sum exceeds the overall monthly limit.');
       return;
     }
 
@@ -115,6 +125,27 @@ export default function SetBudgetModal({ onClose, onSuccess }) {
             <p className="text-[12px] text-on-surface-variant opacity-80">
               The total amount you plan to spend this month across all categories.
             </p>
+            {numericTotalLimit > 0 && (
+              <div className="mt-2 space-y-1.5">
+                <div className="flex justify-between text-[12px]">
+                  <span className={isOverBudget ? 'text-error font-medium' : 'text-on-surface-variant'}>
+                    {isOverBudget 
+                      ? `Exceeds total by ₹${Math.abs(remainingBudget).toFixed(2)}` 
+                      : `₹${remainingBudget.toFixed(2)} remaining to allocate`
+                    }
+                  </span>
+                  <span className="text-on-surface-variant font-medium">
+                    {sumOfCategories.toFixed(2)} / {numericTotalLimit.toFixed(2)}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-300 ${isOverBudget ? 'bg-error' : 'bg-primary'}`} 
+                    style={{ width: `${Math.min((sumOfCategories / numericTotalLimit) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-outline-variant/40 pt-4">
