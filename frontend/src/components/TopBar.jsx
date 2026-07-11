@@ -58,7 +58,7 @@ export default function TopBar({ title, subtitle, children }) {
       {/* Dynamic children (e.g. search bars, history controls, add buttons).
           On mobile this zone shrinks to fit rather than forcing a fixed
           justify-center width, which was pushing into the right-side icons. */}
-      <div className="flex-1 flex justify-end sm:justify-center px-0.5 sm:px-md min-w-0 overflow-hidden">
+      <div className="flex-1 flex justify-end sm:justify-center px-0.5 sm:px-md min-w-0">
         {children}
       </div>
 

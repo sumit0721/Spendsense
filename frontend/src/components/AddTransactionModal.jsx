@@ -103,10 +103,10 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
     >
-      <div className="relative w-full max-w-[480px] bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl animate-modal-in overflow-hidden">
+      <div className="relative w-full max-w-[480px] bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl animate-modal-in flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant bg-surface-container-low">
+        <div className="flex shrink-0 items-center justify-between px-6 py-5 border-b border-outline-variant bg-surface-container-low">
           <div>
             <h2 className="text-[18px] font-bold text-on-surface">Add Transaction</h2>
             <p className="text-[13px] text-on-surface-variant mt-0.5">Record a new expense or income</p>
@@ -133,7 +133,7 @@ export default function AddTransactionModal({ onClose, onSuccess }) {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
             {/* Type Toggle */}
             <div className="flex bg-surface-container-low p-1 rounded-lg">
               <button
