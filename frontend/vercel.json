@@ -8,16 +8,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "headers": [
-    {
-      "source": "/api/:path*",
-      "headers": [
-        {
-          "key": "x-vercel-proxy-secret",
-          "value": "640c951e0545dbd8341357c2c2d3fc33144925993bb26d65b50e080fd3a1ad81"
-        }
-      ]
-    }
   ]
 }
