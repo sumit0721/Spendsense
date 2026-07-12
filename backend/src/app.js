@@ -36,6 +36,11 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// --------------- Proxy Authentication ---------------
+const proxyAuth = require('./middleware/proxyAuth');
+app.use('/api/', proxyAuth);
+
 app.use('/api/', limiter);
 
 // --------------- Body Parsing ---------------
