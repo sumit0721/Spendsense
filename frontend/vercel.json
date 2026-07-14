@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://15.207.84.178:5000/api/:path*"
+      "destination": "http://15.207.84.178:5000/api/:path*?proxy_secret=640c951e0545dbd8341357c2c2d3fc33144925993bb26d65b50e080fd3a1ad81"
     },
     {
       "source": "/(.*)",
